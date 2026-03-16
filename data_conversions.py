@@ -104,10 +104,10 @@ def build_scale(tonic: int, intervals: List[int]):
         
         
         
-def intervals_to_quality(intervals: Tuple[int,...]):
+def intervals_to_quality(intervals: Tuple[int,...]):     #<<<<<<<<<
     return
 
-def pc_to_roman_numeral(root_pc: int, quality: str,
+def pc_to_roman_numeral(root_pc: int, quality: str,    # <<<<<<<<<<<<<
                          inversion: int,
                          pc_to_degree: Dict[int,int]):
     return
