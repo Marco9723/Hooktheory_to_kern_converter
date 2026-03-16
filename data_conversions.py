@@ -3,6 +3,7 @@
 # one task --> one function
 from data_structures import KERN_NOTE_NAME, KERN_NOTE_DURATIONS
 from fractions import Fraction # for exact ractionals
+from typing import List, Dict,Tuple, Optional, Any, Set
 
 # we do not convert really in midi, we use midi numbers only as a reference
 # Only as reference: C-1=0 (+1!!), C0=12, C1=24, C2=36, C3=48, C4=60 (middle C), C5=72, C6=84
@@ -82,5 +83,31 @@ def duration_to_kern(beats_dur: float, beat_unit: int = 4):
     
     
             
+def build_scale(tonic: int, intervals: List[int]):
+    
+    '''
+    Returns:
+            - degree_pcs    : lista [pc_grado1, ..., pc_grado7]
+                          utile per costruire accordi (grado → pitch class)
+        - pc_to_degree  : dict {pitch_class → grado}
+                          utile per analisi armonica (pitch class → grado)
+    Sono la stessa informazione in direzioni opposte.
+    Avere entrambe evita di dover invertire la lista ogni volta (O(1) vs O(n)).
 
+    degree_pcs: List[int] = []
+    pc = tonic_pc
+    '''
+    scale_degrees = []
+    
+    for i in range(7):         
+        scale_degrees.append(tonic % 12)  
+        
+        
+        
+def intervals_to_quality(intervals: Tuple[int,...]):
+    return
 
+def pc_to_roman_numeral(root_pc: int, quality: str,
+                         inversion: int,
+                         pc_to_degree: Dict[int,int]):
+    return
