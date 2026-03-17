@@ -1,7 +1,7 @@
 # functions to transform one data format/type in another one
 # to manage the data flux!
 # one task --> one function
-from data_structures import KERN_NOTE_NAME, KERN_NOTE_DURATIONS
+from data_structures import KERN_NOTE_NAME, KERN_NOTE_DURATIONS, INTERVALS_TO_CHORD_QUALITY, CHORD_QUALITY_TO_MXHM, MAJOR_FUNCTION, MINOR_FUNCTION
 from fractions import Fraction # for exact ractionals
 from typing import List, Dict,Tuple, Optional, Any, Set
 
@@ -41,7 +41,7 @@ def duration_to_kern(beats_dur: float, beat_unit: int = 4):
     IDEA: In **kern the duration is the DENOMINATOR wrt QUARTER NOTES
           we have to express beats_dur as fraction of quarter notes
     '''
-    quarter_note = Fraction( int(round(beats_dur * 1024 * 4 / beat_unit)), 1024).limit_denominator(1024)
+    quarter_note = Fraction( int(round(beats_dur * 1024 * 4 / beat_unit)), 1024).limit_denominator(1024)  # <----------
 
     # standard/simple durations. Ex: quarter_note = 1 --> k=4 --> '4'
     for k in KERN_NOTE_DURATIONS:
@@ -84,30 +84,98 @@ def duration_to_kern(beats_dur: float, beat_unit: int = 4):
     
             
 def build_scale(tonic: int, intervals: List[int]):
+    # d major (tonic=2, intervals=[2,2,1,2,2,2])
     
-    '''
-    Returns:
-            - degree_pcs    : lista [pc_grado1, ..., pc_grado7]
-                          utile per costruire accordi (grado → pitch class)
-        - pc_to_degree  : dict {pitch_class → grado}
-                          utile per analisi armonica (pitch class → grado)
-    Sono la stessa informazione in direzioni opposte.
-    Avere entrambe evita di dover invertire la lista ogni volta (O(1) vs O(n)).
-
-    degree_pcs: List[int] = []
-    pc = tonic_pc
-    '''
+    # list useful to build chords (grado >> pitch class)
+    # 2 4 6 7 9 11 1
     scale_degrees = []
+    t=tonic
     
     for i in range(7):         
-        scale_degrees.append(tonic % 12)  
+        scale_degrees.append(t % 12)  # to stay in range 0-11
+        
+        if i < len(intervals):
+            t += intervals[i]  # updates new t
+    
+    # same list, but Dict, for harmonic analysis (pitch class >> grade)
+    # {2: 1, 4: 2, 6: 3, ...}  (pitch_class → grado 1-7)
+    # dict comprehension {v: k for k, v in ...}
+    pitch_class_to_degree = {
+        pc_val: idx + 1  # Alla nota pc_val assegna il grado idx + 1
+        for idx, pc_val in enumerate(scale_degrees)
+    }
+    
+    return scale_degrees, pitch_class_to_degree
         
         
-        
-def intervals_to_quality(intervals: Tuple[int,...]):     #<<<<<<<<<
-    return
+def intervals_to_chord_quality(intervals: Tuple[int,...]):        # <<< mettere   intervals: Tuple[int,...]?
+    quality = INTERVALS_TO_CHORD_QUALITY.get(intervals)
+    if quality:
+        return quality
+    
+    # possono esserci più possibilità
+    if len(intervals) >= 2:
+        basic_chord_structure = INTERVALS_TO_CHORD_QUALITY.get(intervals[:2])  # take first 2 elements
+        if basic_chord_structure:
+            return basic_chord_structure
+        else:
+            print("Chord not recognized")
+            
+    return 'maj'
+    
 
-def pc_to_roman_numeral(root_pc: int, quality: str,    # <<<<<<<<<<<<<
-                         inversion: int,
-                         pc_to_degree: Dict[int,int]):
-    return
+# for now roman numbers
+def pitch_class_to_roman_numbers(root_pitch_class: int, quality: str, inversion: int, pitch_class_to_degree: Dict[int,int]):   # <<< mettere ???
+    # Formato: prefix-roman-suffix-inversion
+    # Es:  I, vi, V7, bVII, iim7, viio7, V7/5
+    suffix, lower = CHORD_QUALITY_TO_MXHM.get(quality, ('', False))  # default False
+    prefix = ''
+    
+    if root_pitch_class in pitch_class_to_degree:
+        # diatonic chord
+        degree = pitch_class_to_degree[root_pitch_class]
+        
+    else:
+        # chromatic chords 
+        # flat if a flat below --> prefix 'b'
+        flat  = (root_pitch_class + 1) % 12  # nearest grade a flat below
+        sharp = (root_pitch_class - 1) % 12  # # nearest grade a sharp above 
+
+        if flat in pitch_class_to_degree:
+            degree = pitch_class_to_degree[flat]
+            prefix = 'b'
+        elif sharp in pitch_class_to_degree:
+            degree = pitch_class_to_degree[sharp]
+            prefix = '#'    # prefix IV
+        else:
+            degree = 1
+            print("Chord grade not recognized")
+            
+    # BUILD CHORD SYMBOL
+    if quality in ('dim', 'dim7'):
+        # diminished
+        roman = prefix + MINOR_FUNCTION.get(degree, 'i') + 'o'
+        if quality == 'dim7':
+            roman += '7'   # viio7 = settima diminuita completa
+
+    elif quality == 'hdim7':
+        # half diminished
+        roman = prefix + MINOR_FUNCTION.get(degree, 'i') + 'ø7'
+
+    elif lower:
+        # minor chords
+        roman = prefix + MINOR_FUNCTION.get(degree, 'i') + suffix
+
+    else:
+        # maj, dom, aug
+        roman = prefix + MAJOR_FUNCTION.get(degree, 'I') + suffix
+
+    # INVERSIONS (0,1,2,3)
+    if inversion == 1:
+        roman += '/3'
+    elif inversion == 2:
+        roman += '/5'
+    elif inversion >= 3:
+        roman += '/7'
+
+    return roman
