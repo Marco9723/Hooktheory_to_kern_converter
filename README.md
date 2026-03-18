@@ -23,7 +23,19 @@ python main.py --tonic 0 --scale major
 
 project/
 │
-├── scale.py
-├── harmony.py
-├── utils.py
-└── main.py
+├── data_structures.py
+        ├── 
+        ├── 
+        ├── 
+├── data_conversions.py
+        ├── 
+        ├── 
+        ├── 
+├── temporal_structures.py
+        ├── 
+        ├── 
+        ├── 
+└── key_signatures.py
+        ├── 
+        ├── 
+        ├── 

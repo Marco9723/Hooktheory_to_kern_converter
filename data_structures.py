@@ -101,3 +101,6 @@ INTERVALS_TO_MODE= {
 }
 
 
+MODES = {1: 'ion', 2:'dor', 3:'phr', 4:'lyd', 5:'mix', 7:'loc'}
+
+
