@@ -1,7 +1,7 @@
 # functions to transform one data format/type in another one
 # to manage the data flux!
 # one task --> one function
-from data_structures import KERN_NOTE_NAME, KERN_NOTE_DURATIONS, INTERVALS_TO_CHORD_QUALITY, CHORD_QUALITY_TO_MXHM, MAJOR_FUNCTION, MINOR_FUNCTION
+from data_structures import KERN_NOTE_NAME, KERN_NOTE_DURATIONS, INTERVALS_TO_CHORD_QUALITY, CHORD_QUALITY_TO_MXHM, MAJOR_FUNCTION, MINOR_FUNCTION, MAJOR_CHORD_SYMBOL, MINOR_CHORD_SYMBOL
 from fractions import Fraction # for exact ractionals
 from typing import List, Dict,Tuple, Optional, Any, Set
 
@@ -171,6 +171,63 @@ def pitch_class_to_roman_numbers(root_pitch_class: int, quality: str, inversion:
         roman = prefix + MAJOR_FUNCTION.get(degree, 'I') + suffix
 
     # INVERSIONS (0,1,2,3)
+    if inversion == 1:
+        roman += '/3'
+    elif inversion == 2:
+        roman += '/5'
+    elif inversion >= 3:
+        roman += '/7'
+
+    return roman
+
+
+
+# token = pitch_class_to_roman_numbers(root_pc, quality, inversion, pitch_class_to_degree)
+def pitch_class_to_chord_notation(root_pitch_class: int, quality: str, inversion: int, pitch_class_to_degree: Dict[int,int]):
+    
+    suffix, lower = CHORD_QUALITY_TO_MXHM.get(quality, ('', False))  # default False
+    prefix = ''
+    
+    if root_pitch_class in pitch_class_to_degree:
+        # diatonic chord
+        degree = pitch_class_to_degree[root_pitch_class]
+        
+    else:
+        # chromatic chords 
+        # flat if a flat below --> prefix 'b'
+        flat  = (root_pitch_class + 1) % 12  # nearest grade a flat below
+        sharp = (root_pitch_class - 1) % 12  # # nearest grade a sharp above 
+
+        if flat in pitch_class_to_degree:
+            degree = pitch_class_to_degree[flat]
+            prefix = 'b'
+        elif sharp in pitch_class_to_degree:
+            degree = pitch_class_to_degree[sharp]
+            prefix = '#'    # prefix IV
+        else:
+            degree = 1
+            print("Chord grade not recognized")
+    
+     # BUILD CHORD SYMBOL
+    if quality in ('dim', 'dim7'):
+        # diminished
+        roman = prefix + MINOR_CHORD_SYMBOL.get(degree, 'i') + 'o'
+        if quality == 'dim7':
+            roman += '7'   # viio7 = settima diminuita completa
+
+    elif quality == 'hdim7':
+        # half diminished
+        roman = prefix + MINOR_CHORD_SYMBOL.get(degree, 'i') + 'ø7'
+
+    elif lower:
+        # minor chords
+        roman = prefix + MINOR_CHORD_SYMBOL.get(degree, 'i') + suffix
+
+    else:
+        # maj, dom, aug
+        roman = prefix + MAJOR_CHORD_SYMBOL.get(degree, 'I') + suffix
+
+    # INVERSIONS (0,1,2,3)   <<<<<<<<<<<<<  to be modified !!!
     if inversion == 1:
         roman += '/3'
     elif inversion == 2:

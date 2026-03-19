@@ -57,6 +57,9 @@ CHORD_QUALITY_TO_MXHM = {
 MAJOR_FUNCTION = {1:'I', 2:'II', 3:'III', 4:'IV', 5:'V', 6:'VI', 7:'VII'}
 MINOR_FUNCTION = {1:'i', 2:'ii', 3:'iii', 4:'iv', 5:'v', 6:'vi', 7:'vii'}
 
+MAJOR_CHORD_SYMBOL = {1:'A', 2:'B', 3:'C', 4:'D', 5:'E', 6:'F', 7:'G'}
+MINOR_CHORD_SYMBOL = {1:'a', 2:'b', 3:'c', 4:'d', 5:'e', 6:'f', 7:'g'}
+
 # note names for kern notation (independent from the octave)
 # no b, only # 
 KERN_NOTE_NAME = { 0:'c',  1:'c#', 2:'d',  3:'d#', 4:'e', 5:'f',  6:'f#', 7:'g',  8:'g#', 9:'a', 10:'a#', 11:'b'}
