@@ -2,6 +2,7 @@
 # legato with [...] (on 2 different lines in the kern file)
 from data_structures import KERN_NOTE_NAME, KERN_NOTE_DURATIONS, INTERVALS_TO_CHORD_QUALITY, CHORD_QUALITY_TO_MXHM, MAJOR_FUNCTION, MINOR_FUNCTION
 from fractions import Fraction # for exact ractionals
+from data_conversions import duration_to_kern
 from typing import List, Dict,Tuple, Optional, Any, Set
 
 def compute_barline_positions(meters: List[Dict], num_beats: int) -> List[Fraction]:
@@ -77,5 +78,93 @@ def get_active_meter(beat: Fraction, meters: List[Dict]) -> Tuple[int, int]:
         else:
             break
     return beats_per_bar, beat_unit
+
+def split_at_barlines(onset: Fraction, duration: Fraction, kern_pitch: str, is_rest: bool, barline_positions: List[Fraction], beat_unit: int,):
+    # divides an event that surpass a bar with legatos
+    # list of tuples: one note can be 1, 2, 3 segments long
+    # La funzione chiamante deve sapere quanti segmenti ha prodotto e dove iniziano.
+    # Una lista è la struttura naturale per "zero o più risultati".
+    # Es: (Fraction(3,2), Fraction(1,2), '[8f#')
+    #     ↑ onset 3.5     ↑ dur 0.5 beat  ↑ token **kern
+    '''
+    La logica delle legature:
+        In **kern una legatura collega note dello stesso pitch che devono
+        suonare come una nota unica (senza reattaccare):
+            '[4c'  = comincia una nota legata (il [ è PRIMA della durata)
+            '4c]'  = finisce una nota legata  (il ] è DOPO il pitch)
+            '[4c]' = nota nel mezzo di una catena (sia apre che chiude)
+
+        Regola: solo il PRIMO segmento non ha '[' in testa.
+                tutti i segmenti non-primi hanno '[' in testa.
+                solo l'ULTIMO segmento ha ']' in coda.
+                i segmenti intermedi hanno sia '[' che ']'.
+        Le pause non usano legature (si dividono e basta).
+    '''
+    
+    offset = onset + duration # operation between Fraction elements, ok
+    
+    internal = []
+    for bar_line in barline_positions:  # barline_positions calcolate alla funzione prima
+        if onset < bar_line < offset:
+            internal.append(bar_line)
+            
+    # if no bar is surpassed
+    if not internal:
+        dur = duration_to_kern(float(duration), beat_unit)
+        # se silenzio
+        if is_rest:
+            token = f"{dur}r"
+        else:
+            token = f"{dur}{kern_pitch}"  # es. '8f#' = croma Fa#
+        return [(onset, duration, token)]   
+
+    # at least one bar surpassed
+    boundaries = internal + [offset]  # (onset,fine prima bar), (inizio prima bar, fine seconda bar), (inizio seconda bar, offset)
+    
+    segments = [] # : List[Tuple[Fraction, Fraction, str]]
+    cur = onset 
+    
+    
+    for idx, bnd in enumerate(boundaries):
+        # enumerate dà (0, boundary[0]), (1, boundary[1]), ...
+        # idx ci serve per capire se siamo al primo o all'ultimo segmento
+
+        segment_dur = bnd - cur   # durata di questo segmento
+
+        # Sicurezza: ignoriamo segmenti di durata zero o negativa (potrebbero capitare con dati imprecisi)
+        if segment_dur <= Fraction(0):
+            cur = bnd
+            continue   
+
+        d = duration_to_kern(float(segment_dur), beat_unit)
+
+        if is_rest:
+            # Le pause si dividono senza legature: ogni segmento è indipendente
+            token = f"{d}r"
+
+        else:
+            # Note: dobbiamo determinare se questo segmento è primo, ultimo o intermedio
+            is_first = (idx == 0)
+            is_last  = (bnd == offset)   # questo confine è la fine originale?
+
+            if is_first and not is_last:
+                # primo di più segmenti: apre la legatura verso il prossimo
+                token = f"[{d}{kern_pitch}"  # es: '[8f#' 
+
+            elif is_last and not is_first:
+                # ultimo di più segmenti: chiude la legatura dal precedente
+                token = f"{d}{kern_pitch}]" #es: '4f#]' 
+
+            elif not is_first and not is_last:
+                # INTERMEDIO: sia apre (verso il prossimo) che chiude (dal precedente)
+                token = f"[{d}{kern_pitch}]"  # Es: '[4f#]' = semiminima Fa# nel mezzo di una catena legata
+
+            else: # is_first AND is_last: non dovrebbe capitare perché
+                token = f"{d}{kern_pitch}"
+
+        segments.append((cur, segment_dur, token))
+        cur = bnd   # il prossimo segmento inizia dove finisce questo
+
+    return segments
 
 

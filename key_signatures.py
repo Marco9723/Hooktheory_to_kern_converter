@@ -1,5 +1,6 @@
 from data_structures import SHARPS, FLATS, MODES, KERN_NOTE_NAME,  MAJOR_KEY_ALTERATIONS, INTERVALS_TO_MODE, CHORD_QUALITY_TO_MXHM, MAJOR_FUNCTION, MINOR_FUNCTION
 from fractions import Fraction # for exact ractionals
+from data_conversions import duration_to_kern
 from typing import List, Dict,Tuple, Optional, Any, Set
 
 def get_active_key(beat: Fraction, keys: List[Dict]) -> Tuple[int, List[int]]:
@@ -87,3 +88,4 @@ def build_tonal_token(tonic_pitch_class: int, intervals: List[int]) -> str:
     else: 
         modal_scale = MODES.get(mode, 'unknown')
         return f"*{note_name}[{modal_scale}]:"
+    
