@@ -1,8 +1,7 @@
-from data_structures import KERN_NOTE_NAME, KERN_NOTE_DURATIONS, INTERVALS_TO_CHORD_QUALITY, CHORD_QUALITY_TO_MXHM, MAJOR_FUNCTION, MINOR_FUNCTION
 from fractions import Fraction # for exact ractionals
-from data_conversions import duration_to_kern, pitch_to_midi, midi_to_kern_pitch
+from data_conversions import pitch_to_midi, midi_to_kern_pitch
 from temporal_structures import split_at_barlines
-from typing import List, Dict,Tuple, Optional, Any, Set
+from typing import List, Dict
 
 def split_into_voices(notes: List[Dict]) -> List[List[Dict]]:
     """
