@@ -1,41 +1,25 @@
 # Hooktheory_to_kern_converter
 
-## Music Scale & Harmony Toolkit
+## Project logic 
 
-Una libreria Python per costruire scale musicali, lavorare con pitch class (0–11) e supportare operazioni di base di analisi armonica e costruzione di accordi.
-
----
-
-## Requisiti
-
-- Python 3.8+
-
-Nessuna dipendenza esterna richiesta.
-
----
-
-## Avvio rapido
-
-Esegui il programma principale:
-
-```bash
-python main.py --tonic 0 --scale major
-
-project/
-│
-├── data_structures.py
-        ├── 
-        ├── 
-        ├── 
-├── data_conversions.py
-        ├── 
-        ├── 
-        ├── 
-├── temporal_structures.py
-        ├── 
-        ├── 
-        ├── 
-└── key_signatures.py
-        ├── 
-        ├── 
-        ├── 
+main()
+  │
+  ├─ load_dataset() in utils.py            
+  ├─ display_song_list() in utils.py       
+  └─ build_kern_file() in build_kern_file.py    
+       │
+       ├─ compute_barline_positions() in temporal_structures.py 
+       ├─ get_active_meter/key() in temporal_structures.py      
+       ├─ build_kern_key_sig() in key_signature.py        
+       ├─ build_tonal_token() in key_signature.py         
+       ├─ split_into_voices() in manage_poliphony.py     
+       │     └─ voice_to_events() in manage_poliphony.py       
+       │           ├─ pitch_to_midi() in data_conversions.py         
+       │           ├─ midi_to_kern_pitch() in data_conversions.py        
+       │           ├─ duration_to_kern() in data_conversions.py        
+       │           └─ split_at_barlines() in temporal_structures.py        
+       │
+       └─ harmony_to_events()          
+             ├─ build_scale() in data_conversions.py           
+             ├─ intervals_to_quality() in data_conversions.py  
+             └─ pc_to_roman_numeral() in data_conversions.py  
