@@ -1,9 +1,3 @@
-import json
-import sys
-import os
-from fractions import Fraction # for exact ractionals
-from typing import List, Dict,Tuple, Optional, Any, Set
-
 # costants and lookup tables (with dictionaries): code-independent data structures
 # key with tuples because immutable, no lists because are mutable
 

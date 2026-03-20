@@ -28,12 +28,12 @@ def main() :
         print(f"\nError: {e}")
         sys.exit(1)
 
-    # song list
+    # song list --> better to create a file?
     songs_list = list(songs.items())
     print(f"There are {len(songs_list)} songs in the dataset.")
 
     # display
-    display_song_list(songs)
+    # display_song_list(songs)
 
     while True:  # valid song number
         try:

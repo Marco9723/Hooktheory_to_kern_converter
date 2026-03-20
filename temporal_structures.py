@@ -24,6 +24,7 @@ def compute_barline_positions(meters: List[Dict], num_beats: int) -> List[Fracti
         Lista ordinata di Fraction — posizioni delle stanghette
     '''
     
+    #sorted_meters = sorted(meters, key=lambda m: m['beat'])
     # function to get beats
     def get_beat(m): 
         return m['beat']
@@ -32,7 +33,9 @@ def compute_barline_positions(meters: List[Dict], num_beats: int) -> List[Fracti
     sorted_meters = sorted(meters, key=get_beat)    # <<<<<<<<<<<<<<<<<<<<<<<  RIVEDI
     
     # usa un set per raccogliere le stanghette: evita duplicati (es. quando la fine di un metro coincide con l'inizio del successivo).
-    barlines: Set[Fraction] = set()      # <<<<<<<<<<<<<<<<<<<<<<<
+    barlines = set()      # <<<<<<<<<<<<<<<<<<<<<<<Set[Fraction]
+    
+    print("PRINT")
     
     # itera sul cambio di metrica
     for i, meter in enumerate(sorted_meters):
@@ -56,7 +59,7 @@ def compute_barline_positions(meters: List[Dict], num_beats: int) -> List[Fracti
         while bar_line <= end:
             # lista di beats dove cade la barline
             barlines.add(bar_line)   # add() su un set: aggiunge solo se non c'è già
-            bl += beats_per_bar
+            bar_line += beats_per_bar
 
     # sorted() su un set: converte in lista ordinata
     # lista ordinata di Fraction: posizioni delle stanghette (beats)

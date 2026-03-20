@@ -3,7 +3,7 @@
 # one task --> one function
 from data_structures import KERN_NOTE_NAME, KERN_NOTE_DURATIONS, INTERVALS_TO_CHORD_QUALITY, CHORD_QUALITY_TO_MXHM, MAJOR_FUNCTION, MINOR_FUNCTION, MAJOR_CHORD_SYMBOL, MINOR_CHORD_SYMBOL
 from fractions import Fraction # for exact ractionals
-from typing import List, Dict,Tuple, Optional, Any, Set
+from typing import List, Dict,Tuple
 
 # we do not convert really in midi, we use midi numbers only as a reference
 # Only as reference: C-1=0 (+1!!), C0=12, C1=24, C2=36, C3=48, C4=60 (middle C), C5=72, C6=84
@@ -105,7 +105,7 @@ def build_scale(tonic: int, intervals: List[int]):
         for idx, pc_val in enumerate(scale_degrees)
     }
     
-    return scale_degrees, pitch_class_to_degree
+    return pitch_class_to_degree, scale_degrees
         
         
 def intervals_to_chord_quality(intervals: Tuple[int,...]):        # <<< mettere   intervals: Tuple[int,...]?
@@ -130,23 +130,26 @@ def pitch_class_to_roman_numbers(root_pitch_class: int, quality: str, inversion:
     # Es:  I, vi, V7, bVII, iim7, viio7, V7/5
     suffix, lower = CHORD_QUALITY_TO_MXHM.get(quality, ('', False))  # default False
     prefix = ''
-    
+    print('pitch1')
     if root_pitch_class in pitch_class_to_degree:
         # diatonic chord
         degree = pitch_class_to_degree[root_pitch_class]
+        print('pitch2')
         
     else:
         # chromatic chords 
         # flat if a flat below --> prefix 'b'
         flat  = (root_pitch_class + 1) % 12  # nearest grade a flat below
         sharp = (root_pitch_class - 1) % 12  # # nearest grade a sharp above 
-
+        print('pitch3')
         if flat in pitch_class_to_degree:
             degree = pitch_class_to_degree[flat]
             prefix = 'b'
+            print('pitch4')
         elif sharp in pitch_class_to_degree:
             degree = pitch_class_to_degree[sharp]
             prefix = '#'    # prefix IV
+            print('pitch5')
         else:
             degree = 1
             print("Chord grade not recognized")
