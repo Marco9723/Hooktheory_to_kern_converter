@@ -8,31 +8,24 @@ from typing import List, Dict
 
 
 
-def build_kern_file(song_id: str, song: Dict) -> str:
+def build_kern_file(song_id: str, song: Dict):
     """
-    1) Estrai i dati dalle annotations
-    2) Calcola le stanghette
-    3) Dividi la melodia in voci e converti in eventi
-    4) Converti gli accordi in eventi
-    5) Raccogli tutti i timestamp, scorri e scrivi riga per riga
-
-    song_id: chiave del dataset (ID HookTheory, es. 'qveoYyGGodn')
-    song   : dizionario con tutti i dati della canzone
-       >>>> Stringa con il contenuto del file **kern pronto per la scrittura
+    input:
+        song_id: key in the dataset (hooktheory id)
+        song   : whole song dictionary
+    returns:
+        string with kern file content (to be written) 
     """
 
     # 1) data extraction from annotations
-    annotations = song.get('annotations', {})  # se 'annotations' manca, usiamo dict vuoto. Questo evita KeyError e rende il codice robusto a dati mancanti
-    num_beats    = int(annotations.get('num_beats', 0)) # converti a intero!
-    meters       = annotations.get('meters',  [{'beat':0,'beats_per_bar':4,'beat_unit':4}])
-    keys         = annotations.get('keys',    [{'beat':0,'tonic_pitch_class':0, 'scale_degree_intervals':[2,2,1,2,2,2]}])
-    melody_notes = annotations.get('melody')  or []  # or [] perchè dataset può avere "melody" null  # .get('melody', []) restituisce None se la chiave esiste ma vale null.
+    annotations = song.get('annotations', {})  # otherwise empty dict
+    num_beats    = int(annotations.get('num_beats', 0)) # convert to integer
+    meters       = annotations.get('meters', [{'beat':0,'beats_per_bar':4,'beat_unit':4}])
+    keys         = annotations.get('keys', [{'beat':0,'tonic_pitch_class':0, 'scale_degree_intervals':[2,2,1,2,2,2]}])
+    melody_notes = annotations.get('melody')  or []  # if melody null, returns None
     harmony_list = annotations.get('harmony') or []
     
-    
-
-    # Stima num_beats se mancante 
-    # Alcuni brani nel dataset potrebbero avere num_beats=0 o assente. Lo stimiamo dall'offset massimo delle note o degli accordi.
+    # Stima num_beats se mancante Lo stimiamo dall'offset massimo delle note o degli accordi.
     if num_beats == 0 and melody_notes:
         # max() con key: restituisce la nota con l'offset più grande
         # poi prendiamo il suo offset e arrotondiamo per eccesso
@@ -106,7 +99,7 @@ def build_kern_file(song_id: str, song: Dict) -> str:
     hk   = song.get('hooktheory', {})
     yt   = song.get('youtube', {})
     urls = hk.get('urls', {})
-    print("build_kern_6")
+    
     def rename(slug: str) -> str:   # local function  adam-lambert--> Adam Lambert
         return ' '.join(w.capitalize() for w in slug.split('-'))
 
@@ -139,7 +132,6 @@ def build_kern_file(song_id: str, song: Dict) -> str:
     key_sig_token  = build_kern_key_sig(init_tonic, init_intervals)
     tonal_token    = build_tonal_token(init_tonic, init_intervals)
     time_sig_token = f"*M{init_beats_per_bar}/{init_beat_unit}"
-    print("build_kern_11")
     
     # queste vanno ripetute su tutte le spines
     lines.append(all_spines(key_sig_token))    # *k[f#c#]\t*k[f#c#]

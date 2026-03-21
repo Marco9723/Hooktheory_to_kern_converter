@@ -130,26 +130,23 @@ def pitch_class_to_roman_numbers(root_pitch_class: int, quality: str, inversion:
     # Es:  I, vi, V7, bVII, iim7, viio7, V7/5
     suffix, lower = CHORD_QUALITY_TO_MXHM.get(quality, ('', False))  # default False
     prefix = ''
-    print('pitch1')
+    
     if root_pitch_class in pitch_class_to_degree:
         # diatonic chord
         degree = pitch_class_to_degree[root_pitch_class]
-        print('pitch2')
         
     else:
         # chromatic chords 
         # flat if a flat below --> prefix 'b'
         flat  = (root_pitch_class + 1) % 12  # nearest grade a flat below
         sharp = (root_pitch_class - 1) % 12  # # nearest grade a sharp above 
-        print('pitch3')
+    
         if flat in pitch_class_to_degree:
             degree = pitch_class_to_degree[flat]
             prefix = 'b'
-            print('pitch4')
         elif sharp in pitch_class_to_degree:
             degree = pitch_class_to_degree[sharp]
             prefix = '#'    # prefix IV
-            print('pitch5')
         else:
             degree = 1
             print("Chord grade not recognized")

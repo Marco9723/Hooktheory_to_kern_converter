@@ -35,8 +35,6 @@ def compute_barline_positions(meters: List[Dict], num_beats: int) -> List[Fracti
     # usa un set per raccogliere le stanghette: evita duplicati (es. quando la fine di un metro coincide con l'inizio del successivo).
     barlines = set()      # <<<<<<<<<<<<<<<<<<<<<<<Set[Fraction]
     
-    print("PRINT")
-    
     # itera sul cambio di metrica
     for i, meter in enumerate(sorted_meters):
         #   i=0, meter={"beat":0, "beats_per_bar":4, ...}

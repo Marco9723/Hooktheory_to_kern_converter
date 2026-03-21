@@ -1,13 +1,12 @@
 import json
 import os
 from typing import Dict
-from data_structures import KERN_NOTE_NAME
 
 
-def load_dataset(filepath: str):   # -> Dict[str, Dict]
+def load_dataset(filepath: str):   
      
     if not os.path.exists(filepath):
-        raise FileNotFoundError(f"File non trovato: '{filepath}'")
+        raise FileNotFoundError(f"File not found: '{filepath}'")
 
     with open(filepath, 'r', encoding='utf-8') as f:
         dataset = json.load(f)
@@ -20,10 +19,8 @@ def load_dataset(filepath: str):   # -> Dict[str, Dict]
         if dataset:
             return dataset   
 
-    raise ValueError("Formato JSON non riconosciuto.\n")
 
-
-def extract_metadata(song_id: str, song: Dict):  # Dict[str, Any]
+def extract_metadata(song: Dict):  
     hk   = song.get('hooktheory', {})
     yt   = song.get('youtube', {})
     ann  = song.get('annotations', {})
@@ -35,7 +32,7 @@ def extract_metadata(song_id: str, song: Dict):  # Dict[str, Any]
 
 def display_song_list(songs: Dict[str, Dict]):
 
-    # .items() restituisce coppie (chiave, valore) in ordine di inserimento
+    # items() returns tuples (key, value) 
     for i, (sid, song) in enumerate(songs.items()):
         hk  = song.get('hooktheory', {})
 
@@ -54,8 +51,32 @@ def sanitize_filename(name: str) -> str:
     for ch in r'\/:*?"<>|':
         name = name.replace(ch, '_')
 
-    name = name.strip()           # rimuovi spazi iniziali e finali
-    name = name.replace(' ', '_') # spazi --> underscore
+    name = name.strip()           # removes spaces at end and beginning
+    name = name.replace(' ', '_') # space = underscore
 
     return  name
+        
 
+def get_name(s):
+    return ' '.join(w.capitalize() for w in s.split('-'))
+
+
+def create_list(songs: Dict[str, Dict], output_path: str = 'songs_list.txt'):
+
+    def get_name(s):
+        return ' '.join(w.capitalize() for w in s.split('-'))
+
+    lines = []
+
+    for i, (sid, song) in enumerate(songs.items()):
+        hk  = song.get('hooktheory', {})
+        artist = get_name(hk.get('artist', 'Unknown'))
+        title  = get_name(hk.get('song',   'Unknown'))
+        lines.append(f"{i:4d}:  {artist:<28}  {title:<32}  ")
+
+    content = '\n'.join(lines)
+
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write(content)
+
+    print(f"List created")

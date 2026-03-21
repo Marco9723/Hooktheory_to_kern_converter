@@ -1,4 +1,12 @@
 # Hooktheory_to_kern_converter
+The goal of this script is to convert songs from the HookTheory dataset (LINK TO HOOKTHEORY) into the corrisponding **kern file.
+For melodies this is done by using MIDI notation as reference.\\
+The code permits to select a song from the dataset and convert it.\\
+You can find the complete list of songs in "list.txt", created with the function create_list() (utils.py).\\
+
+(KERN NOTATION INFOS)\\
+
+The main function is build_kern_file().\\
 
 ## Project logic 
 
