@@ -25,19 +25,16 @@ def build_kern_file(song_id: str, song: Dict):
     melody_notes = annotations.get('melody')  or []  # if melody null, returns None
     harmony_list = annotations.get('harmony') or []
     
-    # Stima num_beats se mancante Lo stimiamo dall'offset massimo delle note o degli accordi.
+    # Estimate num_beats if missing from the maximum offset of the notes or chords
     if num_beats == 0 and melody_notes:
-        # max() con key: restituisce la nota con l'offset più grande
-        # poi prendiamo il suo offset e arrotondiamo per eccesso
-        num_beats = int(max(melody_notes, key=lambda n: n['offset'])['offset'] + 0.99)
+        # max() with key returns the note with the largest offset, then we take its offset and round up
+        num_beats = int(max(melody_notes, key=lambda n: n['offset'])['offset'] + 0.99)  # 
     if num_beats == 0 and harmony_list:
         num_beats = int(max(harmony_list, key=lambda c: c['offset'])['offset'] + 0.99)
     if num_beats == 0:
-        num_beats = 4   # fallback minimo: almeno una misura di 4/4
+        num_beats = 4   # minimum fallback: at least one measure of 4/4
 
-    # 2) metrica e tonalità iniziali
-    # Ci servono per scrivere l'header del file.
-    # Usiamo Fraction(0) per essere coerenti con il resto del codice.
+    # 2) Initial meter and key signature: we need these to write the file header
     init_beats_per_bar, init_beat_unit = get_active_meter(Fraction(0), meters)
     init_tonic, init_intervals = get_active_key(Fraction(0), keys)
     
@@ -53,61 +50,54 @@ def build_kern_file(song_id: str, song: Dict):
     n_voices = len(voices)
     total_spines = n_voices + 1
 
-    # Costruiamo la lista degli eventi per ogni voce
-    # È una "lista di liste di tuple": per ogni voce, una sequenza di eventi
+    # build the list of events for each entry
+    # it's a list of lists of tuples: for each entry, a sequence of events
     voice_events_list = []  # List[List[Tuple[Fraction, Fraction, str]]]
     for v_notes in voices:
         v_events = voice_to_events(v_notes, barline_positions, num_beats, init_beat_unit)
         voice_events_list.append(v_events)
     
-    # 5) conversione accordi in eventi 
+    # 5) conversion chord to events
     harm_events = harmony_to_events(harmony_list, keys)
     
-    # 6) raccogliamo tutti i timestamp di attacco 
-    # Usiamo un set per eliminare automaticamente i duplicati.
-    # (es. voce1 e accordo potrebbero avere un attacco allo stesso beat)
-    all_onsets = set()  # Set[Fraction] =
+    # 6) collect all attack timestamps (set to automatically eliminate duplicates)
+    # (example: voice and chord might have an attack on the same beat)
+    all_onsets = set()  # Set[Fraction] 
 
     for v_ev in voice_events_list:
         for (t, _, _) in v_ev:
-            # _ è una convenzione: "questa variabile esiste ma non la uso". La tupla ha 3 elementi, ci interessa solo il primo (onset)
             all_onsets.add(t)
-
-    
+ 
     for (t, _, _) in harm_events:
         all_onsets.add(t)
 
-    
-    # Aggiungiamo le stanghette come timestamp: dobbiamo emetterle anche se non coincidono con nessun attacco melodico/armonico
+    # add the bar lines as timestamps
     for bl in barline_positions:
         all_onsets.add(bl)
 
-
+    # sort the list of events
     sorted_onsets = sorted(all_onsets)
-    # sorted() su un set: converte in lista ordinata (il set non è ordinato)
 
-    # 7) indici di scorrimento lineari
-    # Per ogni timeline (voce o armonia), teniamo un indice che punta all'evento corrente. Lo avanziamo solo quando emettiamo quell'evento.
-    v_idx = [0] * n_voices    # lista di n_voices zeri: un indice per ogni voce
-    h_idx = 0                  # indice per gli accordi
+    # 7) scroll indices: for each timeline (vocals or harmony), maintain an index pointing to the current event. We advance it only when we emit that event.
+    v_idx = [0] * n_voices    # voice indexes
+    h_idx = 0                  # chords index
     
-    # 8) costruiamo le righe del file
-    lines = []     # ogni elemento sarà una riga del file **kern, lista di stringhe
-    
+    # 8) build rows of kern file
+    lines = []     
     
     # 9) metadata
     hk   = song.get('hooktheory', {})
-    yt   = song.get('youtube', {})
-    urls = hk.get('urls', {})
+    # yt   = song.get('youtube', {})
+    # urls = hk.get('urls', {})
     
-    def rename(slug: str) -> str:   # local function  adam-lambert--> Adam Lambert
+    def rename(slug: str) -> str:   #  adam-lambert--> Adam Lambert
         return ' '.join(w.capitalize() for w in slug.split('-'))
 
     artist_name = rename(hk.get('artist', 'Unknown Artist'))
     song_name   = rename(hk.get('song',   'Unknown Song'))
     
     def all_spines(token: str) -> str:
-        # Replica un token su tutte le spine, separate da TAB
+        # replies token on all spines, divided by TAB
         return '\t'.join([token] * total_spines)
     
     # 10) File intro
@@ -117,49 +107,44 @@ def build_kern_file(song_id: str, song: Dict):
     lines.append(f"!!!OPR: {artist_name}")
     lines.append(f"!!!hooktheory-id: {song_id}")
     
-    
-    # 11) Intestazione delle spine: ['**kern'] * n_voices  && ['**mxhm'] 
+    # 11) spines opening: ['**kern'] * n_voices  && ['**mxhm'] 
     lines.append('\t'.join(['**kern'] * n_voices + ['**mxhm']))
 
-    # 12) Token di configurazione iniziali 
-    # chiave di violino standard, la spina **mxhm riceve '*' = "token nullo" (non ha una chiave)
+    # 12) initial configuration tokens
+    # standard treble clef, the **mxhm plug receives '*' = "null token" (it has no key)
     clef_row = '\t'.join(['*clefG2'] * n_voices + ['*'])
     lines.append(clef_row)
     
 
-    # variabili di stato per tenere traccia della configurazione corrente
-    # le uso per evitare di riscrivere token uguali inutilmente e per rilevare i cambi di tonalità/metrica
+    # state variables to keep track of the current configuration
+    # used to avoid rewriting identical tokens and to detect key/meter changes
     key_sig_token  = build_kern_key_sig(init_tonic, init_intervals)
     tonal_token    = build_tonal_token(init_tonic, init_intervals)
     time_sig_token = f"*M{init_beats_per_bar}/{init_beat_unit}"
     
-    # queste vanno ripetute su tutte le spines
-    lines.append(all_spines(key_sig_token))    # *k[f#c#]\t*k[f#c#]
+    # tokens to repeat on all spines
+    lines.append(all_spines(key_sig_token))    # *k[f#]\t*k[f#]
     lines.append(all_spines(tonal_token))      # *D:\t*D:
     lines.append(all_spines(time_sig_token))   # *M4/4\t*M4/4
 
-    # =1- = stanghetta di apertura
+    # =1- = opening bar
     lines.append(all_spines('=1-'))
 
-    # variabili di stato per il loop principale 
-    bar_number        = 1     # numero della misura corrente (partendo da 1)
-    next_barline_idx  = 0     # puntatore nella lista barline_positions
+    # state variables for main loop 
+    bar_number        = 1     # current bar (from 1)
+    next_barline_idx  = 0     # pointer to barline_positions list
 
-    # Loop principale: scorriamo tutti i timestamp 
+    # main loop: loop through all the timestamps 
     for t in sorted_onsets:
 
-        # set bar
-        # se questo timestamp è una stanghetta, la emettiamo PRIMA degli eventi.
-        # poi continua a processare gli eventi che hanno onset coincidente con la stanghetta stessa
+        # set bar: if this timestamp is a bar, we emit it before the events
+        # then continues processing events that have an onset coinciding with the bar 
         if (next_barline_idx < len(barline_positions) and t == barline_positions[next_barline_idx]):
             bar_number += 1
             lines.append(all_spines(f"={bar_number}"))
             next_barline_idx += 1
             
-
-        
-        # Verifica se la metrica è cambiata rispetto all'ultima emessa. I cambi di metrica coincidono sempre con una stanghetta
-        
+        # check if the meter has changed since the last one. Meter changes always coincide with a bar line.
         bpb_t, bu_t = get_active_meter(t, meters)
         
         new_time_sig = f"*M{bpb_t}/{bu_t}"
@@ -168,29 +153,29 @@ def build_kern_file(song_id: str, song: Dict):
             lines.append(all_spines(new_time_sig))
             time_sig_token = new_time_sig    
 
-        # tonality change
+        # check tonality change
         tonic_t, intervals_t = get_active_key(t, keys)
         new_key_sig = build_kern_key_sig(tonic_t, intervals_t)
         new_tonal   = build_tonal_token(tonic_t, intervals_t)
         if new_key_sig != key_sig_token:
-            # scriviamo firma in chiave che il token di tonalità
+            # write both the key signature and the key token
             lines.append(all_spines(new_key_sig))
             lines.append(all_spines(new_tonal))
-            key_sig_token = new_key_sig    # aggiorniamo lo stato
+            key_sig_token = new_key_sig    # update state
 
-        # melodic voices token
-        row_tokens = []  # : List[str]
+        # melodic voices token (list of strings)
+        row_tokens = []  
 
         for v in range(n_voices):
-            v_events = voice_events_list[v]   # eventi di questa voce
-            i = v_idx[v]                       # indice corrente di questa voce
+            v_events = voice_events_list[v]   # events for this voice
+            i = v_idx[v]                       # current index of this voice
 
             if i < len(v_events) and v_events[i][0] == t:
-                # questo evento della voce inizia esattamente a questo timestamp
-                row_tokens.append(v_events[i][2])   # [2] è il token **kern
+                # this entry event starts exactly at this timestamp
+                row_tokens.append(v_events[i][2])   # [2] is **kern token
                 v_idx[v] += 1                      
             else:
-                # nessun attacco a questo timestamp per questa voce: l'evento precedente continua --> token '.'
+                # no timestamp attack for this entry: previous event continues: append token '.'
                 row_tokens.append('.')
 
         # chord token
@@ -198,13 +183,12 @@ def build_kern_file(song_id: str, song: Dict):
             harm_tok = harm_events[h_idx][2]
             h_idx += 1
         else:
-            harm_tok = '.'   # accordo precedente ancora in corso
+            harm_tok = '.'   # previous chord still in progress
 
         # write the row
-        # Aggiungiamo la riga SOLO se almeno una spina ha un evento reale --> evita righe inutili di soli '.'
+        # add the line only if at least one spine has a real event: to avoid unnecessary lines of only '.'
         if any(tok != '.' for tok in row_tokens) or harm_tok != '.':
             lines.append('\t'.join(row_tokens + [harm_tok]))
-
 
     # spine ending
     lines.append('\t'.join(['*-'] * total_spines))

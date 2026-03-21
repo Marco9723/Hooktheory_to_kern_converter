@@ -6,20 +6,21 @@ from fractions import Fraction # for exact ractionals
 from typing import List, Dict,Tuple
 
 # we do not convert really in midi, we use midi numbers only as a reference
-# Only as reference: C-1=0 (+1!!), C0=12, C1=24, C2=36, C3=48, C4=60 (middle C), C5=72, C6=84
-# BUT Hooktheory uses another conversion: octave 0  is octave 4 in MIDI, octave 1 is octave 5 in MIDI, octave -1 is octave 3 in MIDI, ecc.
-# MIDI = (octave + 4 + 1) * 12 + pitch_class
+# example: C-1=0 (+1!!), C0=12, C1=24, C2=36, C3=48, C4=60 (middle C), C5=72, C6=84
+# remeber the different Hooktheory/kern convention: octave 0 is octave 4 in MIDI, octave 1 is octave 5 in MIDI, octave -1 is octave 3 in MIDI, ...
+# midi = (octave + 4 + 1) * 12 + pitch_class
+
 def pitch_to_midi(octave: int, pitch_class: int):
     return (octave + 5) * 12 + pitch_class
 
 def midi_to_kern_pitch(midi: int):
-    octave = (midi // 12) - 1 # integer division
-    pitch_class = midi % 12 # resto
-    base = KERN_NOTE_NAME[pitch_class]   # ex: c#
-    letter = base[0]    # ex: c (first character of string "c#")
-    alterations = base[1:]  # ex: everything after letter: "#" or " "
+    octave = (midi // 12) - 1               # integer division
+    pitch_class = midi % 12                 # rest
+    base = KERN_NOTE_NAME[pitch_class]      # ex: c#
+    letter = base[0]                        # ex: c (first character of string "c#")
+    alterations = base[1:]                  # ex: everything after letter: "#" or " "
     if octave >= 4:
-        reps = octave - 4 + 1 # how many times i have to repeat the letter
+        reps = octave - 4 + 1               # how many times i have to repeat the letter
         return letter.lower() * reps + alterations   # + alterations: concatenate "#" or nothing 
     else:
         reps = 4 - octave
@@ -27,21 +28,22 @@ def midi_to_kern_pitch(midi: int):
 
 
 # Fraction(1, 3) is exactly 1/3, no approximations! (Python represents it as couple of integers)
-# floating point problem: 0.1 + 0.2 == 0.3  is  False in Python
-# Converts duration in beat in the relative kern duration (beat unit default=4)
+# because of floating point problem: 0.1 + 0.2 == 0.3  is  False in Python
+
+# converts duration in beat in the relative kern duration (beat unit default=4)
 def duration_to_kern(beats_dur: float, beat_unit: int = 4):
     '''
     beats_dur: absolute duration in beat (1.0, 1.5, 2.0, etc.)
     beat_unit: denominator of the metric (if meter is 3/4 --> 4)
     
     To remember:
-    in 4/4 (beat_unit=4): 1 beat = 1 quarter note (semiminima) = 4 in lern
+    in 4/4 (beat_unit=4): 1 beat = 1 quarter note (semiminima) = 4 in kern
     in 6/8 (beat_unit=8): 1 beat = 1 octave note (croma)  = 8 in kern
         
-    IDEA: In **kern the duration is the DENOMINATOR wrt QUARTER NOTES
-          we have to express beats_dur as fraction of quarter notes
+    MAIN IDEA/LOGIC: in kern the duration is the denominator wrt quarter notes
+          we have to express beats_dur as fraction of quarter notes!!!
     '''
-    quarter_note = Fraction( int(round(beats_dur * 1024 * 4 / beat_unit)), 1024).limit_denominator(1024)  # <----------
+    quarter_note = Fraction( int(round(beats_dur * 1024 * 4 / beat_unit)), 1024).limit_denominator(1024)  
 
     # standard/simple durations. Ex: quarter_note = 1 --> k=4 --> '4'
     for k in KERN_NOTE_DURATIONS:
@@ -86,8 +88,7 @@ def duration_to_kern(beats_dur: float, beat_unit: int = 4):
 def build_scale(tonic: int, intervals: List[int]):
     # d major (tonic=2, intervals=[2,2,1,2,2,2])
     
-    # list useful to build chords (grado >> pitch class)
-    # 2 4 6 7 9 11 1
+    # list useful to build chords (grade >> pitch class)      2 4 6 7 9 11 1
     scale_degrees = []
     t=tonic
     
@@ -98,8 +99,7 @@ def build_scale(tonic: int, intervals: List[int]):
             t += intervals[i]  # updates new t
     
     # same list, but Dict, for harmonic analysis (pitch class >> grade)
-    # {2: 1, 4: 2, 6: 3, ...}  (pitch_class → grado 1-7)
-    # dict comprehension {v: k for k, v in ...}
+    # {2: 1, 4: 2, 6: 3, ...}  (pitch_class >> grade from 1 to 7)
     pitch_class_to_degree = {
         pc_val: idx + 1  # Alla nota pc_val assegna il grado idx + 1
         for idx, pc_val in enumerate(scale_degrees)
@@ -108,12 +108,12 @@ def build_scale(tonic: int, intervals: List[int]):
     return pitch_class_to_degree, scale_degrees
         
         
-def intervals_to_chord_quality(intervals: Tuple[int,...]):        # <<< mettere   intervals: Tuple[int,...]?
+def intervals_to_chord_quality(intervals: Tuple[int,...]):       
     quality = INTERVALS_TO_CHORD_QUALITY.get(intervals)
     if quality:
         return quality
     
-    # possono esserci più possibilità
+    # more possibilities with this chord structure can exist
     if len(intervals) >= 2:
         basic_chord_structure = INTERVALS_TO_CHORD_QUALITY.get(intervals[:2])  # take first 2 elements
         if basic_chord_structure:
@@ -125,8 +125,8 @@ def intervals_to_chord_quality(intervals: Tuple[int,...]):        # <<< mettere 
     
 
 # for now roman numbers
-def pitch_class_to_roman_numbers(root_pitch_class: int, quality: str, inversion: int, pitch_class_to_degree: Dict[int,int]):   # <<< mettere ???
-    # Formato: prefix-roman-suffix-inversion
+def pitch_class_to_roman_numbers(root_pitch_class: int, quality: str, inversion: int, pitch_class_to_degree: Dict[int,int]):  
+    # Format: prefix-roman-suffix-inversion
     # Es:  I, vi, V7, bVII, iim7, viio7, V7/5
     suffix, lower = CHORD_QUALITY_TO_MXHM.get(quality, ('', False))  # default False
     prefix = ''
@@ -151,12 +151,12 @@ def pitch_class_to_roman_numbers(root_pitch_class: int, quality: str, inversion:
             degree = 1
             print("Chord grade not recognized")
             
-    # BUILD CHORD SYMBOL
+    # build chord symbol
     if quality in ('dim', 'dim7'):
         # diminished
         roman = prefix + MINOR_FUNCTION.get(degree, 'i') + 'o'
         if quality == 'dim7':
-            roman += '7'   # viio7 = settima diminuita completa
+            roman += '7'   # complete diminished seventh
 
     elif quality == 'hdim7':
         # half diminished
@@ -170,7 +170,7 @@ def pitch_class_to_roman_numbers(root_pitch_class: int, quality: str, inversion:
         # maj, dom, aug
         roman = prefix + MAJOR_FUNCTION.get(degree, 'I') + suffix
 
-    # INVERSIONS (0,1,2,3)
+    # inversions (0,1,2,3)
     if inversion == 1:
         roman += '/3'
     elif inversion == 2:
@@ -227,7 +227,7 @@ def pitch_class_to_chord_notation(root_pitch_class: int, quality: str, inversion
         # maj, dom, aug
         chord_notation = prefix + MAJOR_CHORD_SYMBOL.get(degree, 'I') + suffix
 
-    # INVERSIONS (0,1,2,3)   <<<<<<<<<<<<<  to be modified !!!
+    # inversions (0,1,2,3)   <<<<<<<<<<<<<  to be modified !!!
     if inversion == 1:
         chord_notation += '/3'
     elif inversion == 2:

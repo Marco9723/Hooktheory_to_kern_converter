@@ -1,73 +1,69 @@
-# beat:  |0123|4567|...    bar at beat 4
+# beat convention used:  |0123|4567|...    bar at beat 4
 # legato with [...] (on 2 different lines in the kern file)
-from data_structures import KERN_NOTE_NAME, KERN_NOTE_DURATIONS, INTERVALS_TO_CHORD_QUALITY, CHORD_QUALITY_TO_MXHM, MAJOR_FUNCTION, MINOR_FUNCTION
 from fractions import Fraction # for exact ractionals
 from data_conversions import duration_to_kern
-from typing import List, Dict,Tuple, Optional, Any, Set
+from typing import List, Dict,Tuple
 
-def compute_barline_positions(meters: List[Dict], num_beats: int) -> List[Fraction]:
+def compute_barline_positions(meters: List[Dict], num_beats: int):
+    '''
     # need Fraction to make coparisons of values
     # "meters" tag of json file. Example:
     # [{"beat": 0,  "beats_per_bar": 4, "beat_unit": 4},   4/4 from beat 0 to 15
     # {"beat": 16, "beats_per_bar": 3, "beat_unit": 4}]   3/4 from beat 16
     
-    # Perché usiamo un Set invece di una List per raccogliere le stanghette? Perché a un cambio di metrica potremmo generare stanghette duplicate
-    # (la fine del metro vecchio coincide con l'inizio del nuovo). Il Set elimina automaticamente i duplicati.
-    # Alla fine convertiamo in List e ordiniamo per avere una sequenza.
-    
-    '''     
-    Args:
-        meters   : lista di cambi di metrica dalle annotations
-        num_beats: durata totale del brano (campo 'num_beats')
+    # NB: set instead of list for bars because it avoids duplicates
+    # because a meter change could generate duplicate bar lines (the end of the old meter coincides with the start of the new one)
+    # at the end we convert to a List and sort to get a sequence
+      
+    inputs:
+        meters: list of meter changes from annotations
+        num_beats: total song duration ('num_beats' field)
 
-    Returns:
-        Lista ordinata di Fraction — posizioni delle stanghette
+    returns:
+        sorted list of Fractions — bar positions
     '''
     
-    #sorted_meters = sorted(meters, key=lambda m: m['beat'])
-    # function to get beats
     def get_beat(m): 
         return m['beat']
     
-    # orders per beat --> ordina i cambi di metrica in base al beat di inizio  (è una lista piccola!)
-    sorted_meters = sorted(meters, key=get_beat)    # <<<<<<<<<<<<<<<<<<<<<<<  RIVEDI
+    # orders per beat --> sort meter changes by start beat
+    sorted_meters = sorted(meters, key=get_beat)   
     
-    # usa un set per raccogliere le stanghette: evita duplicati (es. quando la fine di un metro coincide con l'inizio del successivo).
-    barlines = set()      # <<<<<<<<<<<<<<<<<<<<<<<Set[Fraction]
+    # use a set to collect the bar lines: avoid duplicates (for example when the end of one meter coincides with the beginning of the next)
+    barlines = set()      
     
-    # itera sul cambio di metrica
+    # iterate over the metric change
     for i, meter in enumerate(sorted_meters):
         #   i=0, meter={"beat":0, "beats_per_bar":4, ...}
         #   i=1, meter={"beat":16, "beats_per_bar":3, ...}
-        start = Fraction(meter['beat'])   # beat inizio del metro
-        beats_per_bar   = meter['beats_per_bar']  # beats per battuta
+        start = Fraction(meter['beat'])   # beat start of the meter
+        beats_per_bar   = meter['beats_per_bar']  # beats per measure
         
-        # calcolo fine del metro
-        # Quindi ogni metro è attivo su [start, end)
+        # end meter calculation --> so each meter is active on [start, end)
         if i + 1 < len(sorted_meters):
-            # se esiste un metro successivo (beat finale del metro)
+            # if there is a subsequent meter (final beat of the meter)
             end = Fraction(sorted_meters[i + 1]['beat'])
         else:
-            # se non esiste un metro successivo
+            # if there is no next meter
             end = Fraction(num_beats)
             
-        # Generiamo stanghette a intervalli regolari di bpb beat
-        # La prima stanghetta è a start + bpb (non a start, che è l'inizio)
+        # generate bar lines at regular intervals of bpb beats
+        # the first bar line is at start + bpb (not at start, which is the beginning)
         bar_line = start + beats_per_bar
         while bar_line <= end:
-            # lista di beats dove cade la barline
-            barlines.add(bar_line)   # add() su un set: aggiunge solo se non c'è già
+            # list of beats where the barline falls
+            barlines.add(bar_line)   # add() on a set: only adds if it isn't already there
             bar_line += beats_per_bar
 
-    # sorted() su un set: converte in lista ordinata
-    # lista ordinata di Fraction: posizioni delle stanghette (beats)
+    # sorted() on a set: convert to a sorted list
+    # sorted list of Fractions: positions of the bars (beats)
     return sorted(barlines)
 
 
 def get_active_meter(beat: Fraction, meters: List[Dict]) -> Tuple[int, int]:
-    # Restituisce la metrica (beats_per_bar, beat_unit) attiva a una data posizione.
-    # funzione viene chiamata per OGNI evento del brano
-    # returns Tuple (beats_per_bar, beat_unit) — es. (4, 4) per 4/4
+    # returns the time signature (beats_per_bar, beat_unit) active at a given position
+    # this function is called for EVERY event in the song!!
+    # returns a tuple (beats_per_bar, beat_unit) --> (4, 4) for 4/4
     beats_per_bar = 4
     beat_unit = 4
     
@@ -81,58 +77,56 @@ def get_active_meter(beat: Fraction, meters: List[Dict]) -> Tuple[int, int]:
     return beats_per_bar, beat_unit
 
 def split_at_barlines(onset: Fraction, duration: Fraction, kern_pitch: str, is_rest: bool, barline_positions: List[Fraction], beat_unit: int,):
+    '''
     # divides an event that surpass a bar with legatos
     # list of tuples: one note can be 1, 2, 3 segments long
-    # La funzione chiamante deve sapere quanti segmenti ha prodotto e dove iniziano.
-    # Una lista è la struttura naturale per "zero o più risultati".
     # Es: (Fraction(3,2), Fraction(1,2), '[8f#')
-    #     ↑ onset 3.5     ↑ dur 0.5 beat  ↑ token **kern
-    '''
-    La logica delle legature:
-        In **kern una legatura collega note dello stesso pitch che devono
-        suonare come una nota unica (senza reattaccare):
-            '[4c'  = comincia una nota legata (il [ è PRIMA della durata)
-            '4c]'  = finisce una nota legata  (il ] è DOPO il pitch)
-            '[4c]' = nota nel mezzo di una catena (sia apre che chiude)
+    #     onset 3.5       dur 0.5 beat    token **kern
+    
+    Legatos in kern notation:
+        A legato connects notes of the same pitch that sound like a single note 
+        '[4c' = begins a legato 
+        '4c]' = ends a slur 
+        '[4c]' = note in the middle of a chain (both opening and closing)
 
-        Regola: solo il PRIMO segmento non ha '[' in testa.
-                tutti i segmenti non-primi hanno '[' in testa.
-                solo l'ULTIMO segmento ha ']' in coda.
-                i segmenti intermedi hanno sia '[' che ']'.
-        Le pause non usano legature (si dividono e basta).
+        Rule: only the FIRST segment does not have a '[' leading
+            all non-first segments have a '[' leading
+            only the LAST segment has a ']' trailing
+            ntermediate segments have both '[' and ']'
+            rests do not use slurs (they simply split)
     '''
     
     offset = onset + duration # operation between Fraction elements, ok
     
     internal = []
-    for bar_line in barline_positions:  # barline_positions calcolate alla funzione prima
+    for bar_line in barline_positions:  # barline_positions computed in the previous function
         if onset < bar_line < offset:
             internal.append(bar_line)
             
     # if no bar is surpassed
     if not internal:
         dur = duration_to_kern(float(duration), beat_unit)
-        # se silenzio
+        # if rest
         if is_rest:
             token = f"{dur}r"
         else:
-            token = f"{dur}{kern_pitch}"  # es. '8f#' = croma Fa#
+            token = f"{dur}{kern_pitch}"  # ex: 8f# = octave note of Fa#
         return [(onset, duration, token)]   
 
     # at least one bar surpassed
-    boundaries = internal + [offset]  # (onset,fine prima bar), (inizio prima bar, fine seconda bar), (inizio seconda bar, offset)
+    boundaries = internal + [offset]  # (onset, end first bar), (begin first bar, end second bar), (begin second bar, offset)
     
-    segments = [] # : List[Tuple[Fraction, Fraction, str]]
+    segments = []   # List[Tuple[Fraction, Fraction, str]]
     cur = onset 
     
     
     for idx, bnd in enumerate(boundaries):
-        # enumerate dà (0, boundary[0]), (1, boundary[1]), ...
-        # idx ci serve per capire se siamo al primo o all'ultimo segmento
+        # enumerate gives (0, boundary[0]), (1, boundary[1]), ...
+        # need idx to understand if we are at the first or last segment
 
-        segment_dur = bnd - cur   # durata di questo segmento
+        segment_dur = bnd - cur   # segment duration
 
-        # Sicurezza: ignoriamo segmenti di durata zero o negativa (potrebbero capitare con dati imprecisi)
+        # for safety ignore segments of zero or negative duration (they may occur with inaccurate data)
         if segment_dur <= Fraction(0):
             cur = bnd
             continue   
@@ -140,31 +134,31 @@ def split_at_barlines(onset: Fraction, duration: Fraction, kern_pitch: str, is_r
         d = duration_to_kern(float(segment_dur), beat_unit)
 
         if is_rest:
-            # Le pause si dividono senza legature: ogni segmento è indipendente
+            # rests are divided without ties: each segment is independent
             token = f"{d}r"
 
         else:
-            # Note: dobbiamo determinare se questo segmento è primo, ultimo o intermedio
+            # Note: We need to determine whether this segment is first, last or middle
             is_first = (idx == 0)
-            is_last  = (bnd == offset)   # questo confine è la fine originale?
+            is_last  = (bnd == offset)   # is this border the original end?
 
             if is_first and not is_last:
-                # primo di più segmenti: apre la legatura verso il prossimo
+                # first of multiple segments: opens the ligature towards the next one
                 token = f"[{d}{kern_pitch}"  # es: '[8f#' 
 
             elif is_last and not is_first:
-                # ultimo di più segmenti: chiude la legatura dal precedente
+                # last of multiple segments: closes the tie from the previous one
                 token = f"{d}{kern_pitch}]" #es: '4f#]' 
 
             elif not is_first and not is_last:
-                # INTERMEDIO: sia apre (verso il prossimo) che chiude (dal precedente)
-                token = f"[{d}{kern_pitch}]"  # Es: '[4f#]' = semiminima Fa# nel mezzo di una catena legata
+                # intermediate: both opens (towards the next) and closes (from the previous)
+                token = f"[{d}{kern_pitch}]"  # Ex: '[4f#]' = F# quarter note in the middle of a tied chain
 
-            else: # is_first AND is_last: non dovrebbe capitare perché
+            else: # is_first AND is_last: this shouldn't happen because
                 token = f"{d}{kern_pitch}"
 
         segments.append((cur, segment_dur, token))
-        cur = bnd   # il prossimo segmento inizia dove finisce questo
+        cur = bnd   # the next segment starts where this one ends
 
     return segments
 

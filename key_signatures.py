@@ -3,28 +3,18 @@ from fractions import Fraction # for exact ractionals
 from data_conversions import duration_to_kern
 from typing import List, Dict,Tuple, Optional, Any, Set
 
-def get_active_key(beat: Fraction, keys: List[Dict]) -> Tuple[int, List[int]]:
+def get_active_key(beat: Fraction, keys: List[Dict]):
     """
-    Restituisce la firma tonale attiva (tonica, intervalli) a una data posizione.
-    Identica logica di get_active_meter() ma per la tonalità.
-    Gestisce le modulazioni: se il brano cambia tonalità a metà, ogni accordo verrà analizzato con il suo contesto tonale corretto.
+    returns the active tonal signature (root, intervals) at a given position (similar to get_active_meter()). To manage modulations!
+    modulation example (in 'key' tag) form C to G:  {"beat": 0,  "tonic_pitch_class": 0, ...}  --> {"beat": 32, "tonic_pitch_class": 7, ...}
 
-    Esempio di modulazione:
-        keys = [
-            {"beat": 0,  "tonic_pitch_class": 0, ...},  ← Do maggiore
-            {"beat": 32, "tonic_pitch_class": 7, ...}   ← Sol maggiore dal beat 32
-        ]
-        get_active_key(beat=20, keys) → (0, [2,2,1,2,2,2])  ← ancora Do
-        get_active_key(beat=36, keys) → (7, [2,2,1,2,2,2])  ← ora Sol
-
-    Args:
+    inputs:
         beat: posizione in beat
         keys: lista dei cambi di tonalità
-
-    Returns:
+    returns:
         Tuple (tonic_pitch_class, scale_degree_intervals)
     """
-    # Default: Do maggiore
+    # default: C major
     tonic_pc  = 0
     intervals = [2, 2, 1, 2, 2, 2]
 
@@ -44,15 +34,15 @@ def build_kern_key_sig(tonic_pitch_class: int, intervals: List[int]) -> str:
     # based on circle of fifths: f c g d a e b
     # the relative minor will have the same alterations
     
-    # convertiamo la lista in tupla per usarla come chiave
-    mode = INTERVALS_TO_MODE.get(tuple(intervals), 1)   # default: modo 1 (maggiore)
+    # we convert the list to a tuple to use it as a key!!
+    mode = INTERVALS_TO_MODE.get(tuple(intervals), 1)   # default: mode 1 (major)
     
-    # se minore naturale
+    # if natura minor
     if mode == 6:
-        # trovo relativa maggiore (+3st)
+        # find relative major (+3st)
         relative_major=(tonic_pitch_class+3)%12
     else:
-        # for semplicity we use directly the tonic
+        # otherwise for semplicity we use directly the tonic
         relative_major = tonic_pitch_class
         
     n = MAJOR_KEY_ALTERATIONS.get(relative_major,0)

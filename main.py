@@ -12,7 +12,6 @@ def main() :
         print("Missing arguments. Example: python main.py hooktheory.json ./output")
         sys.exit(1)
 
-
     dataset_path = sys.argv[1]
     output_dir = sys.argv[2] if len(sys.argv) > 2 else '.'
     os.makedirs(output_dir, exist_ok=True)  
@@ -27,7 +26,7 @@ def main() :
         print(f"\nError: {e}")
         sys.exit(1)
 
-    # song list --> better to create a file?
+    # song list 
     songs_list = list(songs.items())
     print(f"{len(songs_list)} songs found in the dataset")
 
@@ -72,7 +71,7 @@ def main() :
         print(f"\nError during conversion!")
         sys.exit(1)
 
-    # sanitize name before saving
+    # sanitize file name before saving
     file_name = song_number + " - " + sanitize_filename(song_name) + " - " + sanitize_filename(artist_name) + " - " + id
     kern_path = os.path.join(output_dir, file_name + '.krn')
 

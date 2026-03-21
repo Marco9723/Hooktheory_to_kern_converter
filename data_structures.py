@@ -1,10 +1,10 @@
 # costants and lookup tables (with dictionaries): code-independent data structures
 # key with tuples because immutable, no lists because are mutable
+# dict as data structure, tuples as key
 
 # semitones between tonic and 3rd AND 3rd and 5th
-# dict (diverso da Dict) as data structure, tuples as key
 INTERVALS_TO_CHORD_QUALITY = {
-    (4,3): 'maj', # Ex: C E G (4 semitones between C and E, 3 semitones between E and G)
+    (4,3): 'maj', # ex: C E G (4 semitones between C and E, 3 semitones between E and G)
     (3,4): 'min',
     (3,3): 'dim',
     (4,4): 'aug',
@@ -23,10 +23,9 @@ INTERVALS_TO_CHORD_QUALITY = {
     # other chords ?
 }
 
-# another dict for conversion to mxhm notation (roman numbers for now)
-# maj to I, min to i, dim to o, dom7 to 7, etc.
+# another dict for conversion to mxhm notation (roman numbers for now): maj to I, min to i, dim to o, dom7 to 7, etc.
 # tag: values of INTERVALS_TO_CHORD_QUALITY
-# values: tuple with chord quality to append (suffix) + True/False if major or minor
+# values: tuple with chord quality to append (suffix) + True or False if major or minor
 CHORD_QUALITY_TO_MXHM = {
     'maj': ('',     False), 
     'min': ('',     True),    
@@ -47,29 +46,27 @@ CHORD_QUALITY_TO_MXHM = {
 }
 
 # dict for chords' functions
-# maybe better with chord names ... <------- NB
 MAJOR_FUNCTION = {1:'I', 2:'II', 3:'III', 4:'IV', 5:'V', 6:'VI', 7:'VII'}
 MINOR_FUNCTION = {1:'i', 2:'ii', 3:'iii', 4:'iv', 5:'v', 6:'vi', 7:'vii'}
 
 MAJOR_CHORD_SYMBOL = {1:'A', 2:'B', 3:'C', 4:'D', 5:'E', 6:'F', 7:'G'}
 MINOR_CHORD_SYMBOL = {1:'a', 2:'b', 3:'c', 4:'d', 5:'e', 6:'f', 7:'g'}
 
-# note names for kern notation (independent from the octave)
-# no b, only # 
+# note names for kern notation (independent from the octave) (no b, only #) 
 KERN_NOTE_NAME = { 0:'c',  1:'c#', 2:'d',  3:'d#', 4:'e', 5:'f',  6:'f#', 7:'g',  8:'g#', 9:'a', 10:'a#', 11:'b'}
 
 # note names for screen output
 SCREEN_NOTE_NAME = { 0:'C', 1:'C#', 2:'D', 3:'D#', 4:'E', 5:'F', 6:'F#', 7:'G', 8:'G#', 9:'A', 10:'A#', 11:'B'}
 
-# note duration / denominator (power of 2), with list
+# list of note duration / denominator (power of 2)
 KERN_NOTE_DURATIONS = [1, 2, 4, 8, 16, 32, 64, 128]
 
-# orders of accidentals, sharps and flats
+# order of accidentals, sharps and flats
 SHARPS = ['f','c','g','d','a','e','b']
 FLATS = ['b','e','a','d','g','c','f']
 
 # sharps and flats for major keys (and subsequently for relative minor keys)
-# positive for sharps, negative for flats
+# positive integer for sharps, negative for flats
 MAJOR_KEY_ALTERATIONS = {
     0:0,  # C
     7:1,  # G (f#)
