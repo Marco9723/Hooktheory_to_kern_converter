@@ -51,7 +51,7 @@ def main() :
     song_id, song = songs_list[idx]
     
     # metadata
-    hk, yt, ann, urls, song_name = extract_metadata(song_id, song)
+    hk, yt, ann, urls, song_name = extract_metadata( song)
     id = hk.get('id', 'Unknown')
     artist_name = hk.get('artist', 'Unknown')
 

@@ -11,6 +11,11 @@ def load_dataset(filepath: str):
     with open(filepath, 'r', encoding='utf-8') as f:
         dataset = json.load(f)
 
+    # as indicated from hooktheory's github
+    # dataset = {k:v for k, v in dataset.items()
+    #                 if 'AUDIO_AVAILABLE' in v['tags']
+    #                 and 'MELODY' in v['tags']
+    #                 and 'TEMPO_CHANGES' not in v['tags']}
     
     if isinstance(dataset, dict):
         songs = {k: v for k, v in dataset.items() if isinstance(v, dict) and 'annotations' in v}

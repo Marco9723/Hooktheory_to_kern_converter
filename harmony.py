@@ -1,6 +1,6 @@
 from fractions import Fraction # for exact ractionals
 from key_signatures import get_active_key
-from data_conversions import build_scale, intervals_to_chord_quality, pitch_class_to_roman_numbers
+from data_conversions import build_scale, intervals_to_chord_quality, pitch_class_to_roman_numbers, pitch_class_to_chord_notation
 from typing import List, Dict
 
 def harmony_to_events(harmony: List[Dict], keys: List[Dict],):  # -> List[Tuple[Fraction, Fraction, str]]
@@ -44,6 +44,7 @@ def harmony_to_events(harmony: List[Dict], keys: List[Dict],):  # -> List[Tuple[
         
         # produciamo il token
         token = pitch_class_to_roman_numbers(root_pc, quality, inversion, pitch_class_to_degree)
+        # token = pitch_class_to_chord_notation(root_pc, quality, inversion, pitch_class_to_degree)
         
         #oppure
         # token = pitch_class_to_chord_notation(root_pc, quality, inversion, pitch_class_to_degree)

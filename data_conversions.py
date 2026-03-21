@@ -190,7 +190,7 @@ def pitch_class_to_chord_notation(root_pitch_class: int, quality: str, inversion
     
     if root_pitch_class in pitch_class_to_degree:
         # diatonic chord
-        degree = pitch_class_to_degree[root_pitch_class]
+        degree = pitch_class_to_degree[root_pitch_class]  #integer
         
     else:
         # chromatic chords 
@@ -211,28 +211,28 @@ def pitch_class_to_chord_notation(root_pitch_class: int, quality: str, inversion
      # BUILD CHORD SYMBOL
     if quality in ('dim', 'dim7'):
         # diminished
-        roman = prefix + MINOR_CHORD_SYMBOL.get(degree, 'i') + 'o'
+        chord_notation = prefix + MINOR_CHORD_SYMBOL.get(degree, 'i') + 'o'
         if quality == 'dim7':
-            roman += '7'   # viio7 = settima diminuita completa
+            chord_notation += '7'   # viio7 = settima diminuita completa
 
     elif quality == 'hdim7':
         # half diminished
-        roman = prefix + MINOR_CHORD_SYMBOL.get(degree, 'i') + 'ø7'
+        chord_notation = prefix + MINOR_CHORD_SYMBOL.get(degree, 'i') + 'ø7'
 
     elif lower:
         # minor chords
-        roman = prefix + MINOR_CHORD_SYMBOL.get(degree, 'i') + suffix
+        chord_notation = prefix + MINOR_CHORD_SYMBOL.get(degree, 'i') + suffix
 
     else:
         # maj, dom, aug
-        roman = prefix + MAJOR_CHORD_SYMBOL.get(degree, 'I') + suffix
+        chord_notation = prefix + MAJOR_CHORD_SYMBOL.get(degree, 'I') + suffix
 
     # INVERSIONS (0,1,2,3)   <<<<<<<<<<<<<  to be modified !!!
     if inversion == 1:
-        roman += '/3'
+        chord_notation += '/3'
     elif inversion == 2:
-        roman += '/5'
+        chord_notation += '/5'
     elif inversion >= 3:
-        roman += '/7'
+        chord_notation += '/7'
 
-    return roman
+    return chord_notation
