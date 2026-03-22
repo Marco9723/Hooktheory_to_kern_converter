@@ -13,16 +13,16 @@ You can upload a **kern file via [Verovio Humdrum viewer](https://verovio.humdru
 
 # Files Organization and Content
 
-- main.py
-- build_kern_file.py
-- data_conversions.py: pitch_to_midi(), midi_to_kern_pitch(), duration_to_kern(), build_scale(), intervals_to_chord_quality(),      pitch_class_to_roman_numbers(), pitch_class_to_chord_notation()
-- temporal_structures.py: compute_barline_positions(), get_active_meter(), split_at_barlines()
-- key_signatures.py: get_active_key(), build_kern_key_sig(), build_tonal_token()
-- manage_poliphony.py: split_into_voices(), voice_to_events()
-- harmony.py: harmony_to_events()
-- utils.py: load_dataset(), extract_metadata(), display_song_list(), sanitize_filename(), create_list()
-- data_structures.py: dictionaries for data structures
-- songs_list.txt: complete list of songs in the dataset
+- **main.py**
+- **build_kern_file.py**
+- **data_conversions.py**: pitch_to_midi(), midi_to_kern_pitch(), duration_to_kern(), build_scale(), intervals_to_chord_quality(),      pitch_class_to_roman_numbers(), pitch_class_to_chord_notation()
+- **temporal_structures.py**: compute_barline_positions(), get_active_meter(), split_at_barlines()
+- **key_signatures.py**: get_active_key(), build_kern_key_sig(), build_tonal_token()
+- **manage_poliphony.py**: split_into_voices(), voice_to_events()
+- **harmony.py**: harmony_to_events()
+- **utils.py**: load_dataset(), extract_metadata(), display_song_list(), sanitize_filename(), create_list()
+- **data_structures.py**: dictionaries for data structures
+- **songs_list.txt**: complete list of songs in the dataset
 
 
 # Project Logic 
@@ -57,27 +57,27 @@ main()
 - Display song list (or create list) (utils.py)
 - Select one song (main.py)
 - Extract and print metadata with function extract_metadata() (utils.py)
-- Call build_kern_file(): it reads song hooktheory ID and whole song dictionary. It will return a string with kern file content (to be written)
+- Call **build_kern_file()**: it reads song hooktheory ID and whole song dictionary. It will return a string with kern file content (to be written)
     - Extract song data from annotation
-    - Initial meter and key signature: get_active_meter(Fraction(0), meters) and get_active_key(Fraction(0), keys) (temporal_structures.py, key_signatures.py)
-    - compute_barline_positions(meters, num_beats) (temporal_structures.py)
+    - Initial meter and key signature: **get_active_meter(Fraction(0), meters)** and **get_active_key(Fraction(0), keys)** (temporal_structures.py, key_signatures.py)
+    - **compute_barline_positions(meters, num_beats)** (temporal_structures.py)
         - inputs: meters (list of meter changes from annotations ) and num_beats (total song duration, 'num_beats' field)
         - returns: sorted list of Fractions (bar positions) 
-    - split_into_voices()  (manage_poliphony.py)
-    - for each voice: voice_to_events() (manage_poliphony.py)
-    - harmony_to_events() (harmony.py)
-        - split_at_barlines(): to manage legatos and rests (manage_poliphony.py)
+    - **split_into_voices()**  (manage_poliphony.py)
+    - for each voice: **voice_to_events()** (manage_poliphony.py)
+    - **harmony_to_events()** (harmony.py)
+        - **split_at_barlines()**: to manage legatos and rests (manage_poliphony.py)
     - collect and sort all attack timestamps (set to automatically eliminate duplicates)
     - build rows of kern file
         - lines.append() 
-        - build_kern_key_sig() token 
-        - build_tonal_token() 
-        - MAIN LOOP: loop through all the timestamps 
+        - **build_kern_key_sig()** token 
+        - **build_tonal_token()** 
+        - **MAIN LOOP: loop through all the timestamps** 
             - lines.append(all_spines(f"={bar_number}"))  (for bars)
-            - get_active_meter() and eventually new_time_sig
+            - **get_active_meter()** and eventually new_time_sig
                 - returns the time signature (beats_per_bar, beat_unit) active at a given position. This function is called for EVERY event in the song! Returns a tuple (beats_per_bar, beat_unit). Example: (4, 4) for 4/4
-            - check tonality change get_active_key(t, keys) and eventually build_kern_key_sig() + build_tonal_token()
-                - get_active_key() same logic of get_active_meter(), but with key
+            - check tonality change with **get_active_key(t, keys)** and eventually build_kern_key_sig() + build_tonal_token()
+                - get_active_key() has the same logic of get_active_meter(), but with key
             - melodic voices token
             - chord token
             - write row
@@ -93,7 +93,7 @@ git clone https://github.com/Marco9723/Hooktheory_to_kern_converter
 cd .\Hooktheory_to_kern_converter  (or your repository)
 ```
 
-# 3. Run the project
+## 3. Run the project
 ```
 python main.py [your dataset path] [your output path]
 ```
