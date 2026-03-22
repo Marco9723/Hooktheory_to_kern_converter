@@ -1,7 +1,7 @@
 # functions to transform one data format/type in another one
 # to manage the data flux!
 # one task --> one function
-from data_structures import KERN_NOTE_NAME, KERN_NOTE_DURATIONS, INTERVALS_TO_CHORD_QUALITY, CHORD_QUALITY_TO_MXHM, MAJOR_FUNCTION, MINOR_FUNCTION, MAJOR_CHORD_SYMBOL, MINOR_CHORD_SYMBOL
+from data_structures import KERN_NOTE_NAME, KERN_NOTE_DURATIONS, INTERVALS_TO_CHORD_QUALITY, SCREEN_NOTE_NAME, CHORD_QUALITY_TO_MXHM, MAJOR_FUNCTION, MINOR_FUNCTION, MAJOR_CHORD_SYMBOL, MINOR_CHORD_SYMBOL
 from fractions import Fraction # for exact ractionals
 from typing import List, Dict,Tuple
 
@@ -182,57 +182,43 @@ def pitch_class_to_roman_numbers(root_pitch_class: int, quality: str, inversion:
 
 
 
-# token = pitch_class_to_roman_numbers(root_pc, quality, inversion, pitch_class_to_degree)
+# not supported 
 def pitch_class_to_chord_notation(root_pitch_class: int, quality: str, inversion: int, pitch_class_to_degree: Dict[int,int]):
     
     suffix, lower = CHORD_QUALITY_TO_MXHM.get(quality, ('', False))  # default False
-    prefix = ''
+    # root_pitch_class: '11' '7' '10' '0' '9' '0'
+    # pitch_class_to_degree: {'2': 1, '4': 2, '6': 3, '7': 4, '9': 5, '11': 6, '1': 7}  --> è in RE
     
-    if root_pitch_class in pitch_class_to_degree:
-        # diatonic chord
-        degree = pitch_class_to_degree[root_pitch_class]  #integer
-        
-    else:
-        # chromatic chords 
-        # flat if a flat below --> prefix 'b'
-        flat  = (root_pitch_class + 1) % 12  # nearest grade a flat below
-        sharp = (root_pitch_class - 1) % 12  # # nearest grade a sharp above 
-
-        if flat in pitch_class_to_degree:
-            degree = pitch_class_to_degree[flat]
-            prefix = 'b'
-        elif sharp in pitch_class_to_degree:
-            degree = pitch_class_to_degree[sharp]
-            prefix = '#'    # prefix IV
-        else:
-            degree = 1
-            print("Chord grade not recognized")
-    
-     # BUILD CHORD SYMBOL
+    # BUILD CHORD SYMBOL
+    # KERN_NOTE_NAME = minor note names
+    # SCREEN_NOTE_NAME = major note names
     if quality in ('dim', 'dim7'):
         # diminished
-        chord_notation = prefix + MINOR_CHORD_SYMBOL.get(degree, 'i') + 'o'
+        chord_notation = KERN_NOTE_NAME.get(root_pitch_class) + 'o'  # degree: from 1 to 7
         if quality == 'dim7':
             chord_notation += '7'   # viio7 = settima diminuita completa
 
     elif quality == 'hdim7':
         # half diminished
-        chord_notation = prefix + MINOR_CHORD_SYMBOL.get(degree, 'i') + 'ø7'
+        chord_notation = KERN_NOTE_NAME.get(root_pitch_class) + 'ø7'
 
     elif lower:
         # minor chords
-        chord_notation = prefix + MINOR_CHORD_SYMBOL.get(degree, 'i') + suffix
+        chord_notation = KERN_NOTE_NAME.get(root_pitch_class) + suffix
 
     else:
         # maj, dom, aug
-        chord_notation = prefix + MAJOR_CHORD_SYMBOL.get(degree, 'I') + suffix
+        chord_notation = SCREEN_NOTE_NAME.get(root_pitch_class) + suffix
 
-    # inversions (0,1,2,3)   <<<<<<<<<<<<<  to be modified !!!
+    # inversions (0,1,2,3)   <<<<<<<<<<<<<  to check
     if inversion == 1:
-        chord_notation += '/3'
+        bass = (root_pitch_class+4)%12
+        chord_notation += f'/{SCREEN_NOTE_NAME.get(bass)}'
     elif inversion == 2:
-        chord_notation += '/5'
+        bass = (root_pitch_class+7)%12
+        chord_notation += f'/{SCREEN_NOTE_NAME.get(bass)}'
     elif inversion >= 3:
-        chord_notation += '/7'
+        bass = (root_pitch_class+11)%12
+        chord_notation += f'/{SCREEN_NOTE_NAME.get(bass)}'
 
     return chord_notation

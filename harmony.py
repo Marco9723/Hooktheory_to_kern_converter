@@ -28,7 +28,7 @@ def harmony_to_events(harmony: List[Dict], keys: List[Dict],):  # -> List[Tuple[
         # active key at the time of the chord 
         tonic_pc, intervals = get_active_key(onset, keys)
         
-        # build pitch_class >>> grado map
+        # build pitch_class >>> grades map
         pitch_class_to_degree, _ = build_scale(tonic_pc, intervals)
         
         # we deduce quality from intervals, list of intervals for each chord
@@ -40,7 +40,7 @@ def harmony_to_events(harmony: List[Dict], keys: List[Dict],):  # -> List[Tuple[
         
         # token
         token = pitch_class_to_roman_numbers(root_pc, quality, inversion, pitch_class_to_degree)  # for roman numerals notation
-        # token = pitch_class_to_chord_notation(root_pc, quality, inversion, pitch_class_to_degree)  # for standard chord notation
+        # token = pitch_class_to_chord_notation(root_pc, quality, inversion, pitch_class_to_degree)  # not supported
         
         events.append((onset, dur, token))
 

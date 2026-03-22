@@ -36,7 +36,7 @@ def main() :
 
     while True:  # valid song number
         try:
-            song_number = input(f"\nInsert the number of the song to convert (0–{len(songs_list)-1}): ")
+            song_number = input(f"Insert the number of the song to convert (0–{len(songs_list)-1}): ")
             idx = int(song_number.strip())
             
             if 0 <= idx < len(songs_list):
