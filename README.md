@@ -57,30 +57,26 @@ main()
 - Display song list (or create list) (utils.py)
 - Select one song (main.py)
 - Extract and print metadata with function extract_metadata() (utils.py)
-- Call **build_kern_file()**: it reads song hooktheory ID and whole song dictionary. It will return a string with kern file content (to be written)
+- Call **build_kern_file()**: it reads song hooktheory ID and whole song dictionary. It will return a string with kern file content
     - Extract song data from annotation
     - Initial meter and key signature: **get_active_meter(Fraction(0), meters)** and **get_active_key(Fraction(0), keys)** (temporal_structures.py, key_signatures.py)
-    - **compute_barline_positions(meters, num_beats)** (temporal_structures.py)
-        - inputs: meters (list of meter changes from annotations ) and num_beats (total song duration, 'num_beats' field)
-        - returns: sorted list of Fractions (bar positions) 
+    - **compute_barline_positions(meters, num_beats)** (temporal_structures.py) 
     - **split_into_voices()**  (manage_poliphony.py)
-    - for each voice: **voice_to_events()** (manage_poliphony.py)
+    - For each voice: **voice_to_events()** (manage_poliphony.py)
     - **harmony_to_events()** (harmony.py)
         - **split_at_barlines()**: to manage legatos and rests (manage_poliphony.py)
-    - collect and sort all attack timestamps (set to automatically eliminate duplicates)
-    - build rows of kern file
-        - lines.append() 
-        - **build_kern_key_sig()** token 
+    - Collect and sort all attack timestamps (with set to automatically eliminate duplicates)
+    - Build rows of kern file
+        - Starting rows of the file with lines.append() 
+        - **build_kern_key_sig()** for key token
         - **build_tonal_token()** 
         - **MAIN LOOP: loop through all the timestamps** 
-            - lines.append(all_spines(f"={bar_number}"))  (for bars)
+            - For bars: lines.append(all_spines(f"={bar_number}"))  
             - **get_active_meter()** and eventually new_time_sig
-                - returns the time signature (beats_per_bar, beat_unit) active at a given position. This function is called for EVERY event in the song! Returns a tuple (beats_per_bar, beat_unit). Example: (4, 4) for 4/4
-            - check tonality change with **get_active_key(t, keys)** and eventually build_kern_key_sig() + build_tonal_token()
-                - get_active_key() has the same logic of get_active_meter(), but with key
-            - melodic voices token
-            - chord token
-            - write row
+            - Check tonality change with **get_active_key(t, keys)** and eventually build_kern_key_sig() + build_tonal_token()
+            - Melodic voices token
+            - Chord token
+            - Write row
 
 # Run the code
 
