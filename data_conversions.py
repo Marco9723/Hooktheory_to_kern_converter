@@ -27,13 +27,10 @@ def midi_to_kern_pitch(midi: int):
         return letter.upper() * reps + alterations
 
 
-# Fraction(1, 3) is exactly 1/3, no approximations! (Python represents it as couple of integers)
-# because of floating point problem: 0.1 + 0.2 == 0.3  is  False in Python
-
 # converts duration in beat in the relative kern duration (beat unit default=4)
 def duration_to_kern(beats_dur: float, beat_unit: int = 4):
     '''
-    beats_dur: absolute duration in beat (1.0, 1.5, 2.0, etc.)
+    beats_dur: absolute duration in beat (1.0, 1.5, 2.0, ...)
     beat_unit: denominator of the metric (if meter is 3/4 --> 4)
     
     To remember:
@@ -43,7 +40,14 @@ def duration_to_kern(beats_dur: float, beat_unit: int = 4):
     MAIN IDEA/LOGIC: in kern the duration is the denominator wrt quarter notes
           we have to express beats_dur as fraction of quarter notes!!!
     '''
-    quarter_note = Fraction( int(round(beats_dur * 1024 * 4 / beat_unit)), 1024).limit_denominator(1024)  
+    # duration wrt to quarter notes!!
+    # beats_dur*4/beat_unit: converts beats into quarter notes: 
+    # In 4/4, a pointed quarter note is 1,5 times a quarter note: 1.5 * 4 / 4 = 1.5   
+    # In 6/8 (beat_unit=8): 1 octave note = 0.5 quarter notes: 1.0 * 4 / 8 = 0.5
+    quarter_note = Fraction( int(round(beats_dur * 1024 * 4 / beat_unit)), 1024).limit_denominator(1024) 
+    # * 1024 in order to multiply by a big integer --> to get more precision!
+    # roud for floating point
+    # int for Fraction 
 
     # standard/simple durations. Ex: quarter_note = 1 --> k=4 --> '4'
     for k in KERN_NOTE_DURATIONS:
@@ -87,11 +91,11 @@ def duration_to_kern(beats_dur: float, beat_unit: int = 4):
             
 def build_scale(tonic: int, intervals: List[int]):
     # d major (tonic=2, intervals=[2,2,1,2,2,2])
-    
-    # list useful to build chords (grade >> pitch class)      2 4 6 7 9 11 1
+        
     scale_degrees = []
     t=tonic
     
+    # scale degrees: for example in c {0,2,4,5,7,9,11}  << pitch class
     for i in range(7):         
         scale_degrees.append(t % 12)  # to stay in range 0-11
         
@@ -126,8 +130,8 @@ def intervals_to_chord_quality(intervals: Tuple[int,...]):
 
 # for now roman numbers
 def pitch_class_to_roman_numbers(root_pitch_class: int, quality: str, inversion: int, pitch_class_to_degree: Dict[int,int]):  
-    # Format: prefix-roman-suffix-inversion
-    # Es:  I, vi, V7, bVII, iim7, viio7, V7/5
+    # Kern format: prefix-roman-suffix-inversion
+    # Ex:  I, vi, V7, bVII, iim7, viio7, V7/5
     suffix, lower = CHORD_QUALITY_TO_MXHM.get(quality, ('', False))  # default False
     prefix = ''
     
@@ -138,7 +142,7 @@ def pitch_class_to_roman_numbers(root_pitch_class: int, quality: str, inversion:
     else:
         # chromatic chords 
         # flat if a flat below --> prefix 'b'
-        flat  = (root_pitch_class + 1) % 12  # nearest grade a flat below
+        flat  = (root_pitch_class + 1) % 12  # nearest grade a flat below (%12 to stayin range 0-11)
         sharp = (root_pitch_class - 1) % 12  # # nearest grade a sharp above 
     
         if flat in pitch_class_to_degree:
@@ -187,7 +191,7 @@ def pitch_class_to_chord_notation(root_pitch_class: int, quality: str, inversion
     
     suffix, lower = CHORD_QUALITY_TO_MXHM.get(quality, ('', False))  # default False
     # root_pitch_class: '11' '7' '10' '0' '9' '0'
-    # pitch_class_to_degree: {'2': 1, '4': 2, '6': 3, '7': 4, '9': 5, '11': 6, '1': 7}  --> è in RE
+    # pitch_class_to_degree: {'2': 1, '4': 2, '6': 3, '7': 4, '9': 5, '11': 6, '1': 7}  --> is in D
     
     # BUILD CHORD SYMBOL
     # KERN_NOTE_NAME = minor note names

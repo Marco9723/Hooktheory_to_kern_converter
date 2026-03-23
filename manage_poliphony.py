@@ -3,7 +3,7 @@ from data_conversions import pitch_to_midi, midi_to_kern_pitch
 from temporal_structures import split_at_barlines
 from typing import List, Dict
 
-def split_into_voices(notes: List[Dict]) -> List[List[Dict]]:
+def split_into_voices(notes: List[Dict]):
     """
     we want to divide them into the minimum number of groups such that no interval within each group overlaps
     1) sort the intervals by onset
@@ -18,16 +18,16 @@ def split_into_voices(notes: List[Dict]) -> List[List[Dict]]:
     
     # orders by onset
     # we use pitch_class as a secondary key for reproducibility: if two notes have the same onset, the order between them is deterministic
-    # the key is a tuple: Python compares the first element (onset) first, then the second (pitch_class) if there's a tie
+    # the key is a tuple: compare the first element (onset) first, then the second (pitch_class) if there's a tie
     sorted_notes = sorted(notes, key=lambda n: (n['onset'], n['pitch_class']))
     
     # data structures
-    voices = []     # each element is a list of notes  List[List[Dict]]
-    voice_ends = []      # offset of the last note of each voice List[float]
+    voices = []     # each element is a list of notes  
+    voice_ends = []      # offset of the last note of each voice 
 
     for note in sorted_notes:
         onset = float(note['onset'])   # float() for comparing with voice_ends (Fraction is not needed)
-        placed = False                  # flag: have you found a foice?
+        placed = False                  # flag: the note has been placed in a voice list?
 
         # search for available voice
         for v, end in enumerate(voice_ends):
@@ -59,8 +59,6 @@ def voice_to_events(voice_notes: List[Dict], barline_positions: List[Fraction], 
     for note in sorted(voice_notes, key=lambda n: n['onset']):
         # convert onset and offset to a fraction with a maximum denominator of 1024
         # limit_denominator(1024) simplifies the fraction by avoiding big denominators
-        # ex: Fraction('3.5') --> Fraction(7, 2)  (already simple)
-        #     Fraction(3.333...) --> could give Fraction(9999, 3000) without limit
         onset  = Fraction(note['onset']).limit_denominator(1024)
         offset = Fraction(note['offset']).limit_denominator(1024)
         dur    = offset - onset
@@ -79,7 +77,7 @@ def voice_to_events(voice_notes: List[Dict], barline_positions: List[Fraction], 
         midi = pitch_to_midi(note['octave'], note['pitch_class'])
         kern_pitch = midi_to_kern_pitch(midi)
 
-        # is_rest=False: This is a true note, use legatos if necessary
+        # is_rest=False: this is a true note, use legatos if necessary
         note_segs = split_at_barlines(onset, dur,kern_pitch,False,barline_positions,beat_unit)
         events.extend(note_segs)
         current = offset   # update cursor at the end of this note

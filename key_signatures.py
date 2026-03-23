@@ -9,8 +9,8 @@ def get_active_key(beat: Fraction, keys: List[Dict]):
     modulation example (in 'key' tag) form C to G:  {"beat": 0,  "tonic_pitch_class": 0, ...}  --> {"beat": 32, "tonic_pitch_class": 7, ...}
 
     inputs:
-        beat: posizione in beat
-        keys: lista dei cambi di tonalità
+        beat: position in beat
+        keys: list of tonality change
     returns:
         Tuple (tonic_pitch_class, scale_degree_intervals)
     """
@@ -18,7 +18,9 @@ def get_active_key(beat: Fraction, keys: List[Dict]):
     tonic_pc  = 0
     intervals = [2, 2, 1, 2, 2, 2]
 
-    for k in sorted(keys, key=lambda x: x['beat']):
+    # check "key" field of the dataset
+    # update as long as the change is in the past, stop as soon as you find one in the future
+    for k in sorted(keys, key=lambda x: x['beat']):  # sort the keys list by the beat field in ascending order
         if Fraction(k['beat']) <= beat:
             tonic_pc  = k['tonic_pitch_class']
             intervals = k['scale_degree_intervals']
@@ -28,7 +30,7 @@ def get_active_key(beat: Fraction, keys: List[Dict]):
     return tonic_pc, intervals
 
 
-def build_kern_key_sig(tonic_pitch_class: int, intervals: List[int]) -> str:
+def build_kern_key_sig(tonic_pitch_class: int, intervals: List[int]):
     # creates kern token of the key signature: *k[<alterations>]
     # example: *k[f#c#] for D major but also B minor
     # based on circle of fifths: f c g d a e b
@@ -63,7 +65,7 @@ def build_kern_key_sig(tonic_pitch_class: int, intervals: List[int]) -> str:
 
 
 def build_tonal_token(tonic_pitch_class: int, intervals: List[int]) -> str:
-    # tonality kern token: *D, *a , *G[mix]
+    # tonality kern token: *D, *a , *G[mix] if mixolydian!
     # different function becuse D is different from relative minor scale b
     note_name = KERN_NOTE_NAME.get(tonic_pitch_class, 'C')  #default C
     mode = INTERVALS_TO_MODE.get(tuple(intervals), 1)

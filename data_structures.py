@@ -55,7 +55,7 @@ MINOR_CHORD_SYMBOL = {0:'c', 2:'d', 4:'e', 5:'f', 7:'g', 9:'a', 11:'b'}
 # note names for kern notation (independent from the octave) (no b, only #) 
 KERN_NOTE_NAME = { 0:'c',  1:'c#', 2:'d',  3:'d#', 4:'e', 5:'f',  6:'f#', 7:'g',  8:'g#', 9:'a', 10:'a#', 11:'b'}
 
-# note names for screen output
+# note names for screen output (data_conversions.py)
 SCREEN_NOTE_NAME = { 0:'C', 1:'C#', 2:'D', 3:'D#', 4:'E', 5:'F', 6:'F#', 7:'G', 8:'G#', 9:'A', 10:'A#', 11:'B'}
 
 # list of note duration / denominator (power of 2)

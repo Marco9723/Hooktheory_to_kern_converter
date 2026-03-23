@@ -67,6 +67,7 @@ def get_active_meter(beat: Fraction, meters: List[Dict]) -> Tuple[int, int]:
     beats_per_bar = 4
     beat_unit = 4
     
+    # check if the new meter is arrived --> sort by beat!
     for m in sorted(meters, key=lambda x: x['beat']):
         if Fraction(m['beat'])<=beat:
             # the meter is active
@@ -80,20 +81,20 @@ def split_at_barlines(onset: Fraction, duration: Fraction, kern_pitch: str, is_r
     '''
     # divides an event that surpass a bar with legatos
     # list of tuples: one note can be 1, 2, 3 segments long
-    # Es: (Fraction(3,2), Fraction(1,2), '[8f#')
-    #     onset 3.5       dur 0.5 beat    token **kern
+    # returns: (Fraction(3,2), Fraction(1,2), '[8f#')
+    #           onset 3.5       dur 0.5 beat    token **kern
     
     Legatos in kern notation:
-        A legato connects notes of the same pitch that sound like a single note 
-        '[4c' = begins a legato 
-        '4c]' = ends a slur 
-        '[4c]' = note in the middle of a chain (both opening and closing)
+    A legato connects notes of the same pitch that sound like a single note 
+    '[4c' = begins a legato 
+    '4c]' = ends a legato 
+    '[4c]' = note in the middle of a chain (both opening and closing)
 
-        Rule: only the FIRST segment does not have a '[' leading
-            all non-first segments have a '[' leading
-            only the LAST segment has a ']' trailing
-            ntermediate segments have both '[' and ']'
-            rests do not use slurs (they simply split)
+    logic: only the FIRST segment does not have a '[' leading
+        all non-first segments have a '[' leading
+        only the LAST segment has a ']' trailing
+        intermediate segments have both '[' and ']'
+        rests do not use slurs (they simply split)
     '''
     
     offset = onset + duration # operation between Fraction elements, ok

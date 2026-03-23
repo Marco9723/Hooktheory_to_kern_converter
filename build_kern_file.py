@@ -34,14 +34,14 @@ def build_kern_file(song_id: str, song: Dict):
     if num_beats == 0:
         num_beats = 4   # minimum fallback: at least one measure of 4/4
 
-    # 2) Initial meter and key signature: we need these to write the file header
-    init_beats_per_bar, init_beat_unit = get_active_meter(Fraction(0), meters)
-    init_tonic, init_intervals = get_active_key(Fraction(0), keys)
+    # 2) Initial meter and key signature: we need these to write the file header. input: current beat and meter
+    init_beats_per_bar, init_beat_unit = get_active_meter(Fraction(0), meters) # returns the time signature (beats_per_bar, beat_unit) active at a given position
+    init_tonic, init_intervals = get_active_key(Fraction(0), keys) # same for key
     
-    # 3) calcolo stanghette 
+    # 3) bars computation
     barline_positions = compute_barline_positions(meters, num_beats)
     
-    # 4) divisione melodia in voci e conversione eventi
+    # 4) manage poliphony into minimum number of voices 
     voices = split_into_voices(melody_notes)
     if not voices or voices == [[]]:
         voices = [[]]
@@ -62,7 +62,7 @@ def build_kern_file(song_id: str, song: Dict):
     
     # 6) collect all attack timestamps (set to automatically eliminate duplicates)
     # (example: voice and chord might have an attack on the same beat)
-    all_onsets = set()  # Set[Fraction] 
+    all_onsets = set()  
 
     for v_ev in voice_events_list:
         for (t, _, _) in v_ev:
@@ -118,8 +118,8 @@ def build_kern_file(song_id: str, song: Dict):
 
     # state variables to keep track of the current configuration
     # used to avoid rewriting identical tokens and to detect key/meter changes
-    key_sig_token  = build_kern_key_sig(init_tonic, init_intervals)
-    tonal_token    = build_tonal_token(init_tonic, init_intervals)
+    key_sig_token  = build_kern_key_sig(init_tonic, init_intervals) # inputs: tonic_pitch_class and intervals (INTERVALS_TO_MODE)
+    tonal_token    = build_tonal_token(init_tonic, init_intervals) # same
     time_sig_token = f"*M{init_beats_per_bar}/{init_beat_unit}"
     
     # tokens to repeat on all spines
@@ -134,7 +134,7 @@ def build_kern_file(song_id: str, song: Dict):
     bar_number        = 1     # current bar (from 1)
     next_barline_idx  = 0     # pointer to barline_positions list
 
-    # main loop: loop through all the timestamps 
+    # MAIN LOOP: loop through all the timestamps 
     for t in sorted_onsets:
 
         # set bar: if this timestamp is a bar, we emit it before the events
