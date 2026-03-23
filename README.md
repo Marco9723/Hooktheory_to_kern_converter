@@ -59,8 +59,8 @@ main()
 - Extract and print metadata with function extract_metadata() (utils.py)
 - Call **build_kern_file()**: it reads song hooktheory ID and whole song dictionary. It will return a string with kern file content
     - Extract song data from annotation
-    - Initial meter and key signature: **get_active_meter(Fraction(0), meters)** and **get_active_key(Fraction(0), keys)** (temporal_structures.py, key_signatures.py)
-    - **compute_barline_positions(meters, num_beats)** (temporal_structures.py) 
+    - Initial meter and key signature: **get_active_meter()** and **get_active_key()** (temporal_structures.py, key_signatures.py)
+    - **compute_barline_positions()** (temporal_structures.py) 
     - **split_into_voices()**  (manage_poliphony.py)
     - For each voice: **voice_to_events()** (manage_poliphony.py)
     - **harmony_to_events()** (harmony.py)
@@ -73,7 +73,7 @@ main()
         - **MAIN LOOP: loop through all the timestamps** 
             - For bars: lines.append(all_spines(f"={bar_number}"))  
             - **get_active_meter()** and eventually new_time_sig
-            - Check tonality change with **get_active_key(t, keys)** and eventually build_kern_key_sig() + build_tonal_token()
+            - Check tonality change with **get_active_key()** and eventually build_kern_key_sig() + build_tonal_token()
             - Melodic voices token
             - Chord token
             - Write row
