@@ -24,6 +24,7 @@ You can upload a **kern file via [Verovio Humdrum viewer](https://verovio.humdru
 - **key_signatures.py**: get_active_key(), build_kern_key_sig(), build_tonal_token()
 - **manage_poliphony.py**: split_into_voices(), voice_to_events()
 - **harmony.py**: harmony_to_events()
+- **beams.py**: is_rest(), beamable(), add_beams()
 - **utils.py**: load_dataset(), extract_metadata(), display_song_list(), sanitize_filename(), create_list()
 - **data_structures.py**: dictionaries for data structures
 - **songs_list.txt**: complete list of songs in the dataset
@@ -49,6 +50,8 @@ main()
     │       ├─ midi_to_kern_pitch()    (data_conversions.py)
     │       ├─ duration_to_kern()      (data_conversions.py)
     │       └─ split_at_barlines()     (temporal_structures.py)
+    |
+    ├─ add_beams()
     │
     └─ harmony_to_events()
         ├─ build_scale()               (data_conversions.py)
@@ -71,6 +74,7 @@ main()
     - **harmony_to_events()** (harmony.py)
         - **intervals_to_chord_quality()**
         - **pitch_class_to_roman_numbers()**
+    - **add_beams()**
     - Collect and sort all attack timestamps (with set to automatically eliminate duplicates)
     - Build rows of kern file
         - Starting rows of the file with lines.append() 
