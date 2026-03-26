@@ -41,7 +41,7 @@ def beamable(tok: str):
         return False        
 
 
-def add_beams(events: List[Tuple[Fraction, Fraction, str]], beats_per_bar: int, beat_unit: int):
+def add_beams(events: List, beats_per_bar: int, beat_unit: int):
 
     # in 6/8 time beaming is grouped into 2 groups of 3 octaves, in 9/8 time 3 groups, 12/8 4 groups
     if beat_unit == 8 and beats_per_bar in (6, 9, 12):

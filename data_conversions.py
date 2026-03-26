@@ -84,7 +84,7 @@ def duration_to_kern(beats_dur: float, beat_unit: int = 4):
     for k in KERN_NOTE_DURATIONS:
         best = min(best, abs(Fraction(4, k) - quarter_note))
     
-    print("Warning: note approximated")    
+    # print("Warning: note approximated")    
     return str(best)
     
     

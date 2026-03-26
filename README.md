@@ -9,6 +9,10 @@ The **kern format has a precise syntax and rules that can be found at the follow
 
 The main function is build_kern_file(): it reads the dictonary of one single song and its ID. Returns a string file of the whole kern content.
 
+In the output folder you can find the first 100 files converted to kerning notation as an example.
+
+All the converted can be found at the following [link] (https://drive.google.com/drive/folders/1RaWtBcHzsbkbpXALwvnlJ54Hvmt7GwOe?usp=sharing).
+
 You can upload a **kern file via [Verovio Humdrum viewer](https://verovio.humdrum.org/) to listen to the final result.
 
 # Files Organization and Content

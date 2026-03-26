@@ -26,6 +26,7 @@ def main() :
         print(f"\nError: {e}")
         sys.exit(1)
 
+    '''
     # song list 
     songs_list = list(songs.items())
     print(f"{len(songs_list)} songs found in the dataset")
@@ -62,23 +63,35 @@ def main() :
           f"Artist URL: {urls.get('artist','Unknown')} \n" + 
           f"Song URL: {urls.get('song','Unknown')} \n" +
           f"Clip URL: {urls.get('clip','Unknown')}" )
- 
+    '''
+    
+    songs_list = list(songs.items())
+    print(f"{len(songs_list)} songs found in the dataset")
+    
+    print("\nStarting building Kern files")
+    
     # build kern file
-    print("\nStarting building Kern file")
-    try:
-        kern_content = build_kern_file(song_id, song)
-    except Exception as e:
-        print(f"\nError during conversion!")
-        sys.exit(1)
+    for idx, (song_id, song) in enumerate(songs_list):
+        song_id, song = songs_list[idx]
+    
+        try:
+            kern_content = build_kern_file(song_id, song)
+        except Exception as e:
+            print(f"\nError in song {song_id}: {e}")
+            continue
 
-    # sanitize file name before saving
-    file_name = song_number + " - " + sanitize_filename(song_name) + " - " + sanitize_filename(artist_name) + " - " + id
-    kern_path = os.path.join(output_dir, file_name + '.krn')
+        hk, _, _, _, song_name = extract_metadata(song)
 
-    # write final kern file
-    with open(kern_path, 'w', encoding='utf-8') as f:
-        f.write(kern_content)
-    print(f"\nFile **kern completed: {kern_path}")
+        artist_name = hk.get('artist', 'Unknown')
+
+        # sanitize file name before saving
+        file_name = f"{idx + 1} - {sanitize_filename(song_name)} - {sanitize_filename(artist_name)} - {song_id}"
+        kern_path = os.path.join(output_dir, file_name + '.krn')
+
+        # write final kern file
+        with open(kern_path, 'w', encoding='utf-8') as f:
+            f.write(kern_content)
+        print(f"\nFile **kern completed: {kern_path}")
 
 
 if __name__ == '__main__':
