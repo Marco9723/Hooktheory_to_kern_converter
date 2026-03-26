@@ -90,16 +90,16 @@ main()
 
 # Run the code
 
-## Clone the repository
+### Clone the repository
 ```
 git clone https://github.com/Marco9723/Hooktheory_to_kern_converter 
 ```
-## Move into the project folder
+### Move into the project folder
 ```
 cd .\Hooktheory_to_kern_converter  (or your repository)
 ```
 
-## Run the project
+### Run the project
 ```
 python main.py [your dataset path] [your output path]
 ```
