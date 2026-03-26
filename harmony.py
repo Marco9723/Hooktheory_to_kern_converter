@@ -3,7 +3,7 @@ from key_signatures import get_active_key
 from data_conversions import build_scale, intervals_to_chord_quality, pitch_class_to_roman_numbers
 from typing import List, Dict
 
-def harmony_to_events(harmony: List[Dict], keys: List[Dict],):  
+def harmony_to_events(harmony: List[Dict], keys: List[Dict]):  
     """
     no rests are needed, no barline divisions are needed and **mxhm doesn't need to fill the time between chords
 
@@ -41,7 +41,6 @@ def harmony_to_events(harmony: List[Dict], keys: List[Dict],):
         
         # token
         token = pitch_class_to_roman_numbers(root_pc, quality, inversion, pitch_class_to_degree)  # for roman numerals notation
-        # token = pitch_class_to_chord_notation(root_pc, quality, inversion, pitch_class_to_degree)  # not supported
         
         events.append((onset, dur, token))
 

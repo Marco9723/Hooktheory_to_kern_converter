@@ -20,7 +20,7 @@ def compute_barline_positions(meters: List[Dict], num_beats: int):
         num_beats: total song duration ('num_beats' field)
 
     returns:
-        sorted list of Fractions — bar positions
+        sorted list of Fractions --> bar positions
     '''
     
     def get_beat(m): 

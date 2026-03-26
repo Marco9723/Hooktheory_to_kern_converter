@@ -3,6 +3,7 @@ from temporal_structures import get_active_meter, compute_barline_positions
 from key_signatures import get_active_key, build_kern_key_sig, build_tonal_token
 from manage_poliphony import split_into_voices, voice_to_events
 from harmony import harmony_to_events
+from beams import add_beams
 from typing import List, Dict
 
 
@@ -19,6 +20,8 @@ def build_kern_file(song_id: str, song: Dict):
 
     # 1) data extraction from annotations
     annotations = song.get('annotations', {})  # otherwise empty dict
+    youtube  = song.get('youtube', {})
+    yt_link = youtube.get('url', {})
     num_beats    = int(annotations.get('num_beats', 0)) # convert to integer
     meters       = annotations.get('meters', [{'beat':0,'beats_per_bar':4,'beat_unit':4}])
     keys         = annotations.get('keys', [{'beat':0,'tonic_pitch_class':0, 'scale_degree_intervals':[2,2,1,2,2,2]}])
@@ -55,6 +58,7 @@ def build_kern_file(song_id: str, song: Dict):
     voice_events_list = []  # List[List[Tuple[Fraction, Fraction, str]]]
     for v_notes in voices:
         v_events = voice_to_events(v_notes, barline_positions, num_beats, init_beat_unit)
+        v_events = add_beams(v_events, init_beats_per_bar, init_beat_unit)    # <-----------
         voice_events_list.append(v_events)
     
     # 5) conversion chord to events
@@ -90,13 +94,13 @@ def build_kern_file(song_id: str, song: Dict):
     # yt   = song.get('youtube', {})
     # urls = hk.get('urls', {})
     
-    def rename(slug: str) -> str:   #  adam-lambert--> Adam Lambert
+    def rename(slug: str):   #  adam-lambert--> Adam Lambert
         return ' '.join(w.capitalize() for w in slug.split('-'))
 
     artist_name = rename(hk.get('artist', 'Unknown Artist'))
     song_name   = rename(hk.get('song',   'Unknown Song'))
     
-    def all_spines(token: str) -> str:
+    def all_spines(token: str):
         # replies token on all spines, divided by TAB
         return '\t'.join([token] * total_spines)
     
@@ -106,6 +110,7 @@ def build_kern_file(song_id: str, song: Dict):
     lines.append(f"!!!COM: {artist_name}")
     lines.append(f"!!!OPR: {artist_name}")
     lines.append(f"!!!hooktheory-id: {song_id}")
+    lines.append(f"!!!Youtube link: {yt_link}")
     
     # 11) spines opening: ['**kern'] * n_voices  && ['**mxhm'] 
     lines.append('\t'.join(['**kern'] * n_voices + ['**mxhm']))

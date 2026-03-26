@@ -200,7 +200,7 @@ def pitch_class_to_chord_notation(root_pitch_class: int, quality: str, inversion
         # diminished
         chord_notation = KERN_NOTE_NAME.get(root_pitch_class) + 'o'  # degree: from 1 to 7
         if quality == 'dim7':
-            chord_notation += '7'   # viio7 = settima diminuita completa
+            chord_notation += '7'   # viio7 = complete half diminished
 
     elif quality == 'hdim7':
         # half diminished
